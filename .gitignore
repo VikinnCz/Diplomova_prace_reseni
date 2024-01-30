@@ -10,6 +10,9 @@
 *.flac
 *.png
 *.ttl
+*.eps
+*.zip
+*.pyc
 
 .deps
 .libs
