@@ -27,11 +27,17 @@ def Code_Generation(beat_tracking:BeatTracking, chroma_features:ChromaFeatures):
     for index, beat in enumerate(beats):
         # if i < HALF:
         #     i += 1
-        if beats_strength[index] > beats_stength_average:
+        if beats_strength[index] > (beats_stength_average-0.2):
+            range = 50
             
-            # TODO: Nebrat tón jen v tom daném čase, ale sečíst s určitého časového úseku a až z tohot součtu vybrat tón který zní nejvíc. 
             time_index =np.where(times == beat)[0]
-            primary_tone = chroma[:,time_index].argmax()
+            if time_index - range >= 0 and time_index + range < chroma.shape[1]:
+                chroma_in_range = np.sum(chroma[:,int(time_index-range):int(time_index+range)], axis=1)
+                primary_tone = chroma_in_range.argmax()
+            else:
+                primary_tone = chroma[:,time_index].argmax() # Tohle je funkcni bez casoveho rozmezi
+             
+
             tone_color = tones_colors[primary_tone]
             hex_tone_color = '#%02x%02x%02x' % (tone_color[0], tone_color[1], tone_color[2])
 
