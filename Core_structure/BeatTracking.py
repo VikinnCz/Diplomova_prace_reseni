@@ -9,17 +9,17 @@ class BeatTracking:
         y, sr = librosa.load(file_name)
         self.tempo, self.__beats = librosa.beat.beat_track(y=y, sr=sr)
         onset_env = librosa.onset.onset_strength(y=y, sr=sr, aggregate=np.median)
-        times = librosa.times_like(onset_env, sr=sr, hop_length=512)
-        self.__beats = times[self.__beats]
+        self.__times = librosa.times_like(onset_env, sr=sr, hop_length=512)
+        self.__beats = self.__times[self.__beats]
         
-        self.__Calc_strength(times, onset_env)
+        self.__Calc_strength(onset_env)
     
-    def __Calc_strength(self, times, onset_env):
+    def __Calc_strength(self, onset_env):
         self.__strength = np.ones(len(self.__beats))
         i = 0
         for beat in self.__beats:
             try:
-                index = np.where(times == beat)[0]
+                index = np.where(self.__times == beat)[0]
                 self.__strength[i] = self.__Max_of_range(int(index), onset_env)
             except ValueError:
                 self.__strength[i] = 0
@@ -35,10 +35,12 @@ class BeatTracking:
         return np.max(range)
     
     def Get_beats(self):
-        return self.__beats
+        return self.__beats 
     def Get_strength(self):
         return self.__strength
     def Get_tempo(self):
         return self.__tempo
+    def Get_times(self):
+        return self.__times
     
 

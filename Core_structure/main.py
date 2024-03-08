@@ -2,21 +2,40 @@ import os
 import numpy as np
 
 from BeatTracking import BeatTracking
+from ChromaFeatures import ChromaFeatures
 
-def Code_Generation(beats, beats_stength):
+CHILL       = 0
+HANG_OUT    = 1
+HAPPY       = 2
+DANCING     = 3
+
+def Code_Generation(beat_tracking:BeatTracking, chroma_features:ChromaFeatures):
     WHOLE = 4
     HALF = 1
     QUOTER = 0
 
-    beats_stength_average = np.median(beats_stength)
+    beats = beat_tracking.Get_beats()
+    beats_strength = beat_tracking.Get_strength()
+    times = beat_tracking.Get_times()
+    chroma = chroma_features.Get_chroma()
+    tones_colors = chroma_features.Get_tones_colors()
+
+    beats_stength_average = np.median(beats_strength)
 
     timeline_animations = []
     # i = 0
     for index, beat in enumerate(beats):
         # if i < HALF:
         #     i += 1
-        if beats_stength[index] > beats_stength_average:
-            timeline_animations.append(f"addDrawing({beat:.2f}s, 0.5s, animPlasmaShot(0.5s, #ffff00, 25%));")
+        if beats_strength[index] > beats_stength_average:
+            
+            # TODO: Nebrat tón jen v tom daném čase, ale sečíst s určitého časového úseku a až z tohot součtu vybrat tón který zní nejvíc. 
+            time_index =np.where(times == beat)[0]
+            primary_tone = chroma[:,time_index].argmax()
+            tone_color = tones_colors[primary_tone]
+            hex_tone_color = '#%02x%02x%02x' % (tone_color[0], tone_color[1], tone_color[2])
+
+            timeline_animations.append(f"addDrawing({beat:.2f}s, 0.5s, animPlasmaShot(0.5s, {hex_tone_color}, 25%));")
         # else:
         #     i = 0
         # timeline_animations.append(f"addDrawing({beat:.2f}s, 0.5s, animPlasmaShot(0.5s, #ffff00, 25%));")
@@ -33,12 +52,11 @@ if __name__ == "__main__":
 
     os.system("cls")
 
-    BeatTracking = BeatTracking(file_name=file_name)
 
-    beats = BeatTracking.Get_beats()
-    beats_stength = BeatTracking.Get_strength()
+    beat_tracking = BeatTracking(file_name=file_name)
+    chroma_features = ChromaFeatures(file_name=file_name, mood=HAPPY)
 
-    timeline_animations = Code_Generation(beats=beats, beats_stength=beats_stength)
+    timeline_animations = Code_Generation(beat_tracking, chroma_features)
     spectoda_code = ''.join(timeline_animations)
     print(spectoda_code)
 
