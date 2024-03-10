@@ -23,10 +23,9 @@ def Code_Generation(beat_tracking:BeatTracking, chroma_features:ChromaFeatures):
     beats_stength_average = np.median(beats_strength)
 
     timeline_animations = []
-    # i = 0
+
     for index, beat in enumerate(beats):
-        # if i < HALF:
-        #     i += 1
+
         if beats_strength[index] > (beats_stength_average-0.2):
             range = 50
             
@@ -42,9 +41,7 @@ def Code_Generation(beat_tracking:BeatTracking, chroma_features:ChromaFeatures):
             hex_tone_color = '#%02x%02x%02x' % (tone_color[0], tone_color[1], tone_color[2])
 
             timeline_animations.append(f"addDrawing({beat:.2f}s, 0.5s, animPlasmaShot(0.5s, {hex_tone_color}, 25%));")
-        # else:
-        #     i = 0
-        # timeline_animations.append(f"addDrawing({beat:.2f}s, 0.5s, animPlasmaShot(0.5s, #ffff00, 25%));")
+
     print (len(timeline_animations))
     return timeline_animations
 
@@ -61,6 +58,8 @@ if __name__ == "__main__":
 
     beat_tracking = BeatTracking(file_name=file_name)
     chroma_features = ChromaFeatures(file_name=file_name, mood=HAPPY)
+
+    # Na základě mood můžu nastavovat trashold pro beat strenght
 
     timeline_animations = Code_Generation(beat_tracking, chroma_features)
     spectoda_code = ''.join(timeline_animations)

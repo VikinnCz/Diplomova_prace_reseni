@@ -71,7 +71,7 @@ class ChromaFeatures:
         Madmom library compute chromagram using a deep neural network that focuses on harmonically relevant spectral content.
         """
         dcp = madmom.audio.DeepChromaProcessor()
-        chroma_madmom_deep = dcp(self.__file_name)
+        chroma_madmom_deep = dcp(self.__file_name,fps = 20.751)
         self.__chroma = np.transpose(chroma_madmom_deep)
 
     def __Calc_color_palette(self):
@@ -129,7 +129,6 @@ class ChromaFeatures:
                     continue
 
     def __Generate_triadic_colors(self, hue, saturation=0.85, lightness=0.5):
-        d
         """
         Generate triadic colors based on hue of first color.
 
