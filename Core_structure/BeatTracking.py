@@ -2,21 +2,21 @@ import librosa
 import numpy as np
 
 class BeatTracking:
-    """A class for Beat tracking analysis
+    """A class for Beat tracking analysis.
 
-    This class analyse rhythmic structure of music song and provides a arrays with beats in times. Also provides strength of the beats.
+    This class analyze rhythmic structure of music song and provides a arrays with beats in times. Also provides strength of the beats.
 
     Atributes
     ----------
     file_name : str
-        Address for lacalization of audio file to analyse.
-    beats : ndarray
+        Address for localization of audio file to analyze.
+    beats : array
         Array of obtained beats.
-    strength :
+    strength : array
         Strength of obtained beats.
-    times :
+    times : array
         The times in which the botained beats are located.
-    tempo :
+    tempo : float
         Tempo of analyzed audio file. In BPM.
 
     Methods
@@ -37,7 +37,7 @@ class BeatTracking:
         Parameters
         ----------
         file_name : str
-            Address for lacalization of audio file to analyse.
+            Address for lacalization of audio file to analyze.
         """
         self.__Calc_beats(file_name)
 
@@ -48,7 +48,7 @@ class BeatTracking:
         Parameters
         ----------
         file_name : str
-            Address for lacalization of audio file to analyse.
+            Address for lacalization of audio file to analyze.
         """
 
         y, sr = librosa.load(file_name)
@@ -106,7 +106,7 @@ class BeatTracking:
         start = max(index - range_size, 0)
         end = min(index + range_size + 1, len(onset_env))
         range = onset_env[start:end]
-        
+
         return np.max(range)
     
     def Get_beats(self):
