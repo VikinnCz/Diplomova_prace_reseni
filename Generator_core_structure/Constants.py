@@ -5,12 +5,16 @@ STROPHE     = 2
 BRIDGE      = 3
 
 # Song genre constants
-CLASSIC     = 0
-FOLK        = 1
-POP         = 2
-ROCK        = 3
-METAL       = 4
-ELECTRONIC  = 5
+BLUES       = 0
+CLASSICAL   = 1
+COUNTRY     = 2
+DISCO       = 3
+HIPHOP      = 4
+JAZZ        = 5
+METAL       = 6
+POP         = 7
+REGGAE      = 8
+ROCK        = 9
 
 # Song mood constants
 CHILL       = 0

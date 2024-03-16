@@ -15,7 +15,7 @@ class ChromaFeatures:
 
     Atributes
     ----------
-    file_name: str
+    audio_path: str
         Address for localization of audio file to analyze.
     mood : int
         Mood of the music song.
@@ -32,17 +32,17 @@ class ChromaFeatures:
         Return chromagram in array values.
         
     """
-    def __init__(self, file_name, mood):
+    def __init__(self, audio_path, mood):
         """
         Parameters
         ----------
-        file_name : str
+        audio_path : str
             Address for lacalization of audio file to analyze.
         mood : int
             Mood of the music song.
         """
         self.__mood = mood
-        self.__file_name = file_name
+        self.__audio_path = audio_path
         self.__Calc_color_palette()
 
     def __Calc_chroma_librosa(self):
@@ -51,7 +51,7 @@ class ChromaFeatures:
 
         Librosa library compute chromagram based on CQT chroma analysis. The function use preprocesing methods a postprocesing methods to improve analysis results.
         """
-        y, sr = librosa.load(self.__file_name)
+        y, sr = librosa.load(self.__audio_path)
 
         y_harm = librosa.effects.harmonic(y=y, margin=8) # Preprocesing by extraction haromic elements from audio.
 
@@ -66,7 +66,7 @@ class ChromaFeatures:
         Madmom library compute chromagram using a deep neural network that focuses on harmonically relevant spectral content.
         """
         dcp = madmom.audio.DeepChromaProcessor()
-        chroma_madmom_deep = dcp(self.__file_name,fps = 20.751)
+        chroma_madmom_deep = dcp(self.__audio_path,fps = 20.751)
         self.__chroma = np.transpose(chroma_madmom_deep)
 
     def __Calc_color_palette(self):

@@ -4,6 +4,7 @@ import numpy as np
 
 from BeatTracking import BeatTracking
 from ChromaFeatures import ChromaFeatures
+from GenreClassification import GenreClassification
 
 def Code_Generation(beat_tracking:BeatTracking, chroma_features:ChromaFeatures):
     WHOLE = 4
@@ -44,16 +45,22 @@ def Code_Generation(beat_tracking:BeatTracking, chroma_features:ChromaFeatures):
 
 
 if __name__ == "__main__":
-    file_name = "Referencni_skladby/Imanbek & BYOR - Belly Dancer (Official Music Video).wav"
-    # file_name = "Referencni_skladby/The Beatles - Abbey Road (1969) (2012 180g Vinyl 24bit-96kHz) [FLAC] vtwin88cube/07.-Here Comes The Sun.wav"
-    # file_name = "Referencni_skladby/The Beatles - Abbey Road (1969) (2012 180g Vinyl 24bit-96kHz) [FLAC] vtwin88cube/01.-Come Together.wav"
+    # audio_path = "Referencni_skladby/Imanbek & BYOR - Belly Dancer (Official Music Video).wav"
+    audio_path = "Referencni_skladby/The Beatles - Abbey Road (1969) (2012 180g Vinyl 24bit-96kHz) [FLAC] vtwin88cube/07.-Here Comes The Sun.wav"
+    # audio_path = "Referencni_skladby/The Beatles - Abbey Road (1969) (2012 180g Vinyl 24bit-96kHz) [FLAC] vtwin88cube/01.-Come Together.wav"
     
 
     os.system("cls")
 
 
-    beat_tracking = BeatTracking(file_name=file_name)
-    chroma_features = ChromaFeatures(file_name=file_name, mood=Constants.DANCING)
+    beat_tracking = BeatTracking(audio_path=audio_path)
+    chroma_features = ChromaFeatures(audio_path=audio_path, mood=Constants.CHILL)
+    genre_classification = GenreClassification(audio_path=audio_path)
+    
+    genre_predictions = genre_classification.Get_genres_predictions()
+    print(genre_predictions)
+    genre = genre_classification.Get_genre()
+    print(f"Žánr: {genre}")
 
     # Na základě mood můžu nastavovat trashold pro beat strenght
 

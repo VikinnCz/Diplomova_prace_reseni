@@ -8,7 +8,7 @@ class BeatTracking:
 
     Atributes
     ----------
-    file_name : str
+    audio_path : str
         Address for localization of audio file to analyze.
     beats : array
         Array of obtained beats.
@@ -32,26 +32,26 @@ class BeatTracking:
     """
 
 
-    def __init__(self, file_name):
+    def __init__(self, audio_path):
         """
         Parameters
         ----------
-        file_name : str
+        audio_path : str
             Address for lacalization of audio file to analyze.
         """
-        self.__Calc_beats(file_name)
+        self.__Calc_beats(audio_path)
 
-    def __Calc_beats(self, file_name):
+    def __Calc_beats(self, audio_path):
         """
         Function use the librosa library to analyze the audio file. The output is an array of beats.
 
         Parameters
         ----------
-        file_name : str
+        audio_path : str
             Address for lacalization of audio file to analyze.
         """
 
-        y, sr = librosa.load(file_name)
+        y, sr = librosa.load(audio_path)
         self.tempo, self.__beats = librosa.beat.beat_track(y=y, sr=sr)
         onset_env = librosa.onset.onset_strength(y=y, sr=sr, aggregate=np.median)
         self.__times = librosa.times_like(onset_env, sr=sr, hop_length=512)
