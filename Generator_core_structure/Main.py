@@ -2,6 +2,7 @@ import os
 import Constants
 import numpy as np
 
+from Dataset import Dataset
 from BeatTracking import BeatTracking
 from ChromaFeatures import ChromaFeatures
 from GenreClassification import GenreClassification
@@ -57,11 +58,6 @@ if __name__ == "__main__":
     chroma_features = ChromaFeatures(audio_path=audio_path, mood=Constants.CHILL)
     genre_classification = GenreClassification(audio_path=audio_path)
     
-    genre_predictions = genre_classification.Get_genres_predictions()
-    print(genre_predictions)
-    genre = genre_classification.Get_genre()
-    print(f"Žánr: {genre}")
-
     # Na základě mood můžu nastavovat trashold pro beat strenght
 
     timeline_animations = Code_Generation(beat_tracking, chroma_features)
