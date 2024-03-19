@@ -3,11 +3,13 @@ import Constants
 import numpy as np
 
 from Dataset import Dataset
+from Segmentation import Segmentation
 from BeatTracking import BeatTracking
+from AnimationBlock import AnimationBlock
 from ChromaFeatures import ChromaFeatures
 from GenreClassification import GenreClassification
 
-def Code_Generation(beat_tracking:BeatTracking, chroma_features:ChromaFeatures):
+def Code_generation(beat_tracking:BeatTracking, chroma_features:ChromaFeatures):
     WHOLE = 4
     HALF = 1
     QUOTER = 0
@@ -40,30 +42,59 @@ def Code_Generation(beat_tracking:BeatTracking, chroma_features:ChromaFeatures):
 
             timeline_animations.append(f"addDrawing({beat:.2f}s, 0.5s, animPlasmaShot(0.5s, {hex_tone_color}, 25%));")
 
-    print (len(timeline_animations))
+    os.system("cls")
+    print (len(timeline_animations)) #Počet animací
     return timeline_animations
 
+def Dataset_selection(dataset_database : list[Dataset], genre_classification : GenreClassification, beat_tracking : BeatTracking, mood : int):
+
+    genre = genre_classification.Get_genre()
+    tempo = beat_tracking.Get_tempo
+
+    selected_dataset = Dataset
+    this_tempo_difrence = int
+
+    for dataset in dataset_database:
+        if dataset.genre == genre and dataset.mood_characteristics == mood:
+            new_tempo_difrence = abs(dataset.tempo - tempo)
+            if this_tempo_difrence > new_tempo_difrence:
+                this_tempo_difrence = new_tempo_difrence
+                selected_dataset = dataset
+
+    return selected_dataset
+
+
+def Load_dataset_database():
+    return [Dataset]
 
 
 if __name__ == "__main__":
     # audio_path = "Referencni_skladby/Imanbek & BYOR - Belly Dancer (Official Music Video).wav"
     audio_path = "Referencni_skladby/The Beatles - Abbey Road (1969) (2012 180g Vinyl 24bit-96kHz) [FLAC] vtwin88cube/07.-Here Comes The Sun.wav"
     # audio_path = "Referencni_skladby/The Beatles - Abbey Road (1969) (2012 180g Vinyl 24bit-96kHz) [FLAC] vtwin88cube/01.-Come Together.wav"
-    
 
-    os.system("cls")
-
+    dataset_database = Load_dataset_database()
+    mood = Constants.CHILL
 
     beat_tracking = BeatTracking(audio_path=audio_path)
-    chroma_features = ChromaFeatures(audio_path=audio_path, mood=Constants.CHILL)
+    chroma_features = ChromaFeatures(audio_path=audio_path, mood=mood)
     genre_classification = GenreClassification(audio_path=audio_path)
+    segmentation = Segmentation(audio_path=audio_path,chroma_features=chroma_features)
     
-    # Na základě mood můžu nastavovat trashold pro beat strenght
 
-    timeline_animations = Code_Generation(beat_tracking, chroma_features)
+    dataset = Dataset_selection(dataset_database, genre_classification, beat_tracking, mood)
+
+    timeline_animations = Code_generation(beat_tracking, chroma_features)
     spectoda_code = ''.join(timeline_animations)
     print(spectoda_code)
 
 
+## Parametry které je možné nastavovat a na základě toho měnit generování aniací. ##
+    
+# Na základě mood můžu nastavovat trashold pro beat strenght
+# Počet generovaných segmentů (number_of_segments)
 
+
+
+# TODO: Předělat getery a settery na @property
 

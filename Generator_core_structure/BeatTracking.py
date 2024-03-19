@@ -52,7 +52,7 @@ class BeatTracking:
         """
 
         y, sr = librosa.load(audio_path)
-        self.tempo, self.__beats = librosa.beat.beat_track(y=y, sr=sr)
+        self.__tempo, self.__beats = librosa.beat.beat_track(y=y, sr=sr)
         onset_env = librosa.onset.onset_strength(y=y, sr=sr, aggregate=np.median)
         self.__times = librosa.times_like(onset_env, sr=sr, hop_length=512)
         self.__beats = self.__times[self.__beats] # Transform beats into their timestamps

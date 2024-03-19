@@ -51,11 +51,11 @@ class ChromaFeatures:
 
         Librosa library compute chromagram based on CQT chroma analysis. The function use preprocesing methods a postprocesing methods to improve analysis results.
         """
-        y, sr = librosa.load(self.__audio_path)
+        y, self.__sr = librosa.load(self.__audio_path)
 
         y_harm = librosa.effects.harmonic(y=y, margin=8) # Preprocesing by extraction haromic elements from audio.
 
-        chroma_harm = librosa.feature.chroma_cqt(y=y_harm, sr=sr) # CQT chromagram calculation.
+        chroma_harm = librosa.feature.chroma_cqt(y=y_harm, sr=self.sr) # CQT chromagram calculation.
         chroma_filter = np.minimum(chroma_harm, librosa.decompose.nn_filter(chroma_harm, aggregate=np.median, metric= 'cosine'))
         self.__chroma = scipy.ndimage.median_filter(chroma_filter, size=(1,9)) # Chromagram filterign thru chroma_filter.
     
@@ -177,6 +177,11 @@ class ChromaFeatures:
         new_color = [int(new_color[0]), int(new_color[1]), int(new_color[2])]
         return new_color
     
+
+    @property
+    def sr(self):
+        return self.__sr
+
     def Get_tones_colors(self):
         return self.__tones_colors
     
