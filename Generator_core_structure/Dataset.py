@@ -1,23 +1,23 @@
 class Dataset:
 
-    def __init__(self, genre : int, speed_suitability : int, mood_characteristics : int, animation_blocks = 0):
+    def __init__(self, genre : int, tempo : int, mood : int, anim_blocks):
         self._genre = genre
-        self._speed_suitability = speed_suitability
-        self._mood_characteristics = mood_characteristics
-        self._animation_blocks = animation_blocks
+        self._tempo = tempo
+        self._mood = mood
+        self._anim_blocks = anim_blocks
 
     @property
     def genre(self):
         return self._genre
     
     @property
-    def speed_suitability(self):
-        return self.__speed_suitability
+    def tempo(self):
+        return self.__tempo
     
     @property
-    def mood_characteristics(self):
-        return self.__mood_characteristics
+    def mood(self):
+        return self.__mood
 
     @property
-    def animation_blocks(self):
-        return self.__animation_blocks
+    def anim_blocks(self):
+        return self.__anim_blocks
