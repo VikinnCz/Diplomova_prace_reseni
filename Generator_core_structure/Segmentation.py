@@ -16,7 +16,7 @@ class Segmentation:
 
     def __Calc_segments(self):
         
-        chroma = self.__chroma_features.Get_chroma()
+        chroma = self.__chroma_features.crhoma
         sr = self.__chroma_features.sr
         bounds = librosa.segment.agglomerative(chroma, self.__number_of_segments)
         self.__bounds = librosa.frames_to_time(bounds, sr=sr)

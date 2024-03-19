@@ -181,9 +181,11 @@ class ChromaFeatures:
     @property
     def sr(self):
         return self.__sr
-
-    def Get_tones_colors(self):
+    
+    @property
+    def tones_colors(self):
         return self.__tones_colors
     
-    def Get_chroma(self):
+    @property
+    def crhoma(self):
         return self.__chroma

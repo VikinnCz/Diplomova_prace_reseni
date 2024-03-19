@@ -14,11 +14,11 @@ def Code_generation(beat_tracking:BeatTracking, chroma_features:ChromaFeatures):
     HALF = 1
     QUOTER = 0
 
-    beats = beat_tracking.Get_beats()
-    beats_strength = beat_tracking.Get_strength()
-    times = beat_tracking.Get_times()
-    chroma = chroma_features.Get_chroma()
-    tones_colors = chroma_features.Get_tones_colors()
+    beats = beat_tracking.beats
+    beats_strength = beat_tracking.strength
+    times = beat_tracking.times
+    chroma = chroma_features.crhoma
+    tones_colors = chroma_features.tones_colors
 
     beats_stength_median = np.median(beats_strength)
 
@@ -48,8 +48,8 @@ def Code_generation(beat_tracking:BeatTracking, chroma_features:ChromaFeatures):
 
 def Dataset_selection(dataset_database : list[Dataset], genre_classification : GenreClassification, beat_tracking : BeatTracking, mood : int):
 
-    genre = genre_classification.Get_genre()
-    tempo = beat_tracking.Get_tempo
+    genre = genre_classification.genre
+    tempo = beat_tracking.tempo
 
     selected_dataset = Dataset
     this_tempo_difrence = int
@@ -79,7 +79,7 @@ if __name__ == "__main__":
     beat_tracking = BeatTracking(audio_path=audio_path)
     chroma_features = ChromaFeatures(audio_path=audio_path, mood=mood)
     genre_classification = GenreClassification(audio_path=audio_path)
-    segmentation = Segmentation(audio_path=audio_path,chroma_features=chroma_features)
+    segmentation = Segmentation(audio_path=audio_path, chroma_features=chroma_features)
     
 
     dataset = Dataset_selection(dataset_database, genre_classification, beat_tracking, mood)

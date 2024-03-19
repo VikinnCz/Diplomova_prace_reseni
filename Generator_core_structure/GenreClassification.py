@@ -45,10 +45,12 @@ class GenreClassification:
         
         return mel
     
-    def Get_genres_predictions(self):
-        return self.__genres_predictions
+    @property
+    def genres_predictions(self):
+        return self.genres_predictions
     
-    def Get_genre(self):
+    @property
+    def genre(self):
         genre = np.argmax(self.__genres_predictions)
         return genre
     

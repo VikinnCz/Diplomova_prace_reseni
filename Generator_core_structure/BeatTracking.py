@@ -109,13 +109,20 @@ class BeatTracking:
 
         return np.max(range)
     
-    def Get_beats(self):
-        return self.__beats 
-    def Get_strength(self):
+    @property
+    def beats(self):
+        return self.__beats
+    
+    @property
+    def strength(self):
         return self.__strength
-    def Get_tempo(self):
+    
+    @property
+    def tempo(self):
         return self.__tempo
-    def Get_times(self):
+    
+    @property
+    def times(self):
         return self.__times
     
 
