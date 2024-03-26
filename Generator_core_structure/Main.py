@@ -1,4 +1,5 @@
 import os
+import json
 import Constants
 import numpy as np
 
@@ -63,8 +64,15 @@ def Dataset_selection(dataset_database : list[Dataset], genre_classification : G
 
     return selected_dataset
 
-
 def Load_dataset_database():
+    with open ("dataset_database.json", "r") as fp:
+        dataset_database_json = json.load(fp,)
+
+    dataset_database = [Dataset(**dataset) for dataset in dataset_database_json]
+
+    for dataset in dataset_database:
+        print (dataset.to_dict())
+
     return [Dataset]
 
 
@@ -74,7 +82,7 @@ if __name__ == "__main__":
     # audio_path = "Referencni_skladby/The Beatles - Abbey Road (1969) (2012 180g Vinyl 24bit-96kHz) [FLAC] vtwin88cube/01.-Come Together.wav"
 
     dataset_database = Load_dataset_database()
-    mood = Constants.CHILL
+    mood = Constants.HAPPY
 
     beat_tracking = BeatTracking(audio_path=audio_path)
     chroma_features = ChromaFeatures(audio_path=audio_path, mood=mood)
@@ -93,8 +101,3 @@ if __name__ == "__main__":
     
 # Na základě mood můžu nastavovat trashold pro beat strenght
 # Počet generovaných segmentů (number_of_segments)
-
-
-
-# TODO: Předělat getery a settery na @property
-

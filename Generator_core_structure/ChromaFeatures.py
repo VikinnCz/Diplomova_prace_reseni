@@ -55,7 +55,7 @@ class ChromaFeatures:
 
         y_harm = librosa.effects.harmonic(y=y, margin=8) # Preprocesing by extraction haromic elements from audio.
 
-        chroma_harm = librosa.feature.chroma_cqt(y=y_harm, sr=self.sr) # CQT chromagram calculation.
+        chroma_harm = librosa.feature.chroma_cqt(y=y_harm, sr=self.__sr) # CQT chromagram calculation.
         chroma_filter = np.minimum(chroma_harm, librosa.decompose.nn_filter(chroma_harm, aggregate=np.median, metric= 'cosine'))
         self.__chroma = scipy.ndimage.median_filter(chroma_filter, size=(1,9)) # Chromagram filterign thru chroma_filter.
     
@@ -68,6 +68,7 @@ class ChromaFeatures:
         dcp = madmom.audio.DeepChromaProcessor()
         chroma_madmom_deep = dcp(self.__audio_path,fps = 20.751)
         self.__chroma = np.transpose(chroma_madmom_deep)
+        self.__sr = librosa.get_samplerate(self.__audio_path)
 
     def __Calc_color_palette(self):
         """
