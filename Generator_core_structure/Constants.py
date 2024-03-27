@@ -1,9 +1,3 @@
-# Song segments constants
-SILENT      = 0
-REFRAIN     = 1
-STROPHE     = 2
-BRIDGE      = 3
-
 # Song genre constants
 BLUES       = 0
 CLASSICAL   = 1
@@ -21,3 +15,5 @@ CHILL       = 0
 HANG_OUT    = 1
 HAPPY       = 2
 DANCING     = 3
+
+# Animation characteristics

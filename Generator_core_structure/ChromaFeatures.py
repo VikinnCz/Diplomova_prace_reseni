@@ -8,14 +8,14 @@ import Constants
 class ChromaFeatures:
     """ A class for chroma freature analysis.
 
-    This class compute a chromagram from musinc song and provides an overview of its chroma features. Two different approaches are used for the analysis.
+    This class compute a chromagram from music song and provides an overview of its chroma features. Two different approaches are used for the analysis.
     First approach is from library Librosa that compute chromagram based on CQT chroma analysis. Second approach is from library Madom that use deep neural network that focuses on harmonically relevant spectral content.
     
     The models for computing chromagram are selected based on mood constants.
 
     Atributes
     ----------
-    audio_path: str
+    audio_path : str
         Address for localization of audio file to analyze.
     mood : int
         Mood of the music song.
@@ -51,9 +51,11 @@ class ChromaFeatures:
 
         Librosa library compute chromagram based on CQT chroma analysis. The function use preprocesing methods a postprocesing methods to improve analysis results.
         """
+         # Load the audio file.
         y, self.__sr = librosa.load(self.__audio_path)
 
-        y_harm = librosa.effects.harmonic(y=y, margin=8) # Preprocesing by extraction haromic elements from audio.
+        # Preprocesing by extraction haromic elements from audio.
+        y_harm = librosa.effects.harmonic(y=y, margin=8)
 
         chroma_harm = librosa.feature.chroma_cqt(y=y_harm, sr=self.__sr) # CQT chromagram calculation.
         chroma_filter = np.minimum(chroma_harm, librosa.decompose.nn_filter(chroma_harm, aggregate=np.median, metric= 'cosine'))
@@ -135,8 +137,9 @@ class ChromaFeatures:
         hue : int
 
         saturation : float, optional
-
+            Default value is 0.85
         lightness : float, optional
+            Default value is 0.5
 
         Returns
         ----------

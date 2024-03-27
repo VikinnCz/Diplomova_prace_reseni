@@ -88,6 +88,7 @@ if __name__ == "__main__":
     chroma_features = ChromaFeatures(audio_path=audio_path, mood=mood)
     genre_classification = GenreClassification(audio_path=audio_path)
     segmentation = Segmentation(audio_path=audio_path, chroma_features=chroma_features)
+    segmentation.bounds
     
 
     dataset = Dataset_selection(dataset_database, genre_classification, beat_tracking, mood)
