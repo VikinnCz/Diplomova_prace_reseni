@@ -50,7 +50,17 @@ class GenreClassification:
         # Output data postprocesing to ndarray
         predictions_tensor = predictions['dense_3']
         genres_predictions = predictions_tensor.numpy()
-        self.__genres_predictions = genres_predictions.reshape(-1, 1)
+        self.__genres_predictions = {
+            "blues" : genres_predictions[0,0],
+            "classical" : genres_predictions[0,1],
+            "country" : genres_predictions[0,2],
+            "disco" : genres_predictions[0,3],
+            "hiphop" : genres_predictions[0,4],
+            "jazz" : genres_predictions[0,5],
+            "metal" : genres_predictions[0,6],
+            "pop" : genres_predictions[0,7],
+            "reggae" : genres_predictions[0,8],
+            "rock" : genres_predictions[0,9]}
 
     def __Data_preparation(self):
         """
@@ -79,15 +89,14 @@ class GenreClassification:
 
         # Calculate the melspectogram of the provided audio data
         mel = librosa.feature.melspectrogram(y=y, sr=sr, n_fft=n_fft, hop_length=hop_length, n_mels=n_mels)
-        
         return mel
     
     @property
     def genres_predictions(self):
-        return self.genres_predictions
+        return self.__genres_predictions
     
     @property
     def genre(self):
-        genre = np.argmax(self.__genres_predictions)
+        genre = max(self.__genres_predictions, key=self.__genres_predictions.get)
         return genre
     
