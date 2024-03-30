@@ -48,19 +48,48 @@ def Code_generation(beat_tracking:BeatTracking, chroma_features:ChromaFeatures):
     return timeline_animations
 
 def Dataset_selection(dataset_database : list[Dataset], genre_classification : GenreClassification, beat_tracking : BeatTracking, mood : int):
-
+    
     genre = genre_classification.genre
+    genre_predictions = genre_classification.genres_predictions
     tempo = beat_tracking.tempo
 
-    selected_dataset = Dataset
-    this_tempo_difrence = int
+    genres_difs = []
 
-    for dataset in dataset_database:
-        if dataset.genre == genre and dataset.mood_characteristics == mood:
-            new_tempo_difrence = abs(dataset.tempo - tempo)
-            if this_tempo_difrence > new_tempo_difrence:
-                this_tempo_difrence = new_tempo_difrence
+    # Broesing thru all datasets
+    for i, dataset in enumerate(dataset_database):
+        genre_dif = 0
+        d_genres_prediction = dataset.genre
+        for key in d_genres_prediction:
+            genre_dif += d_genres_prediction[key] - genre_predictions[key]
+
+        genres_difs[i] = np.abs(genre_dif)
+
+    genre_pass_datasets = []
+
+    for i in range(5):
+        index_of_max = np.argmax(genres_difs)
+        genre_pass_datasets[i] = dataset_database[genres_difs[index_of_max]]
+        genres_difs[index_of_max] = 0
+
+    this_tempo_dif = 100
+    selected_dataset = Dataset
+    
+    for dataset in genre_pass_datasets:
+        if dataset.mood == mood:
+            new_tempo_dif = abs(dataset.tempo - tempo)
+            if this_tempo_dif > new_tempo_dif:
+                this_tempo_dif = new_tempo_dif
                 selected_dataset = dataset
+
+
+    # ---> Tohle je pro dataset s jednou hodnotou žándru.
+    # Broesing thru all datasets
+    # for dataset in dataset_database:
+    #     if dataset.genre == genre and dataset.mood_characteristics == mood:
+    #         new_tempo_difrence = abs(dataset.tempo - tempo)
+    #         if this_tempo_difrence > new_tempo_difrence:
+    #             this_tempo_difrence = new_tempo_difrence
+    #             selected_dataset = dataset
 
     return selected_dataset
 
@@ -98,7 +127,11 @@ if __name__ == "__main__":
     print(spectoda_code)
 
 
-## Parametry které je možné nastavovat a na základě toho měnit generování aniací. ##
-    
+## Parametry které je možné nastavovat a na základě toho měnit generování animací. ##
 # Na základě mood můžu nastavovat trashold pro beat strenght
 # Počet generovaných segmentů (number_of_segments)
+
+
+#TODO: Jak vybírat datasety abych pro každý žánr nemusel mít dataset pro každou náladu (40 datasetů). 
+    # Řešení 1: žánr bude mít nejnižší prioritu při výběru. Prioritní bude mood a tempo až nakonec žánr.
+    # Řešení 2: parametr genre bude list a každý dataset může být pro několik žánrů. Například to může být pole s hodnotou pro každý žánr a tato hodnota bude určovat vhodnost pro daný žánr. Tato hodnota se pak porovnává s hodnotama pravděpodobnosti pro daný žánr. Vybere se 5 nejvíce hodících a z těch se následně vybírá nejpodobnější náladě a tempu.

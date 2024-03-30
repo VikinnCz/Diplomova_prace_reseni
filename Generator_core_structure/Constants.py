@@ -1,14 +1,14 @@
 # Song genre constants
-BLUES       = 0
-CLASSICAL   = 1
-COUNTRY     = 2
-DISCO       = 3
-HIPHOP      = 4
-JAZZ        = 5
-METAL       = 6
-POP         = 7
-REGGAE      = 8
-ROCK        = 9
+BLUES       = "blues"
+CLASSICAL   = "classical"
+COUNTRY     = "country"
+DISCO       = "disco"
+HIPHOP      = "hiphop"
+JAZZ        = "jazz"
+METAL       = "metal"
+POP         = "pop"
+REGGAE      = "reggae"
+ROCK        = "rock"
 
 # Song mood constants
 CHILL       = 0

@@ -1,6 +1,6 @@
 class Dataset:
 
-    def __init__(self, genre : int, tempo : int, mood : int, anim_blocks):
+    def __init__(self, genre : dict, tempo : int, mood : int, anim_blocks):
         self._genre = genre
         self._tempo = tempo
         self._mood = mood
