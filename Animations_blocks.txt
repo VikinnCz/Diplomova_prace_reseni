@@ -1,0 +1,16 @@
+// THEME
+addLayer({start_beat}s, 5s, {
+  addLayer(0s, 2.5s, {
+    addDrawing(0s, 2.5s, animLoadingBar(5s, {color_0}, #000000));
+    addDrawing(0s, 2.5s, animLoadingBar(-5s, #000000, {color_0}));
+  });
+  addLayer(0s, 5s, {
+    addDrawing(0s, 5s, animFill(Infinity, {color_0}));
+    filDrawing(0s, 5s, animLoadingBar(-5s, #000000, {color_0}));
+    filDrawing(0s, 5s, animLoadingBar(5s, {color_0}, #000000));
+  });
+}).modifyTimeChange(1s, {time_modifer}s);
+
+
+// FLOW
+  addDrawing({start_beat}s, {end_beat}s, animColorGradient3(7.5s, #{color_1}, #{color_0}, {#color_2}, 100%, 35%));

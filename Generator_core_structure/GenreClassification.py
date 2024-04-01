@@ -1,6 +1,7 @@
 import librosa
 import numpy as np
 import tensorflow as tf
+import Constants as cns
 
 
 class GenreClassification:
@@ -23,7 +24,6 @@ class GenreClassification:
     genre : float
         Get genre with the highest probability.
     """
-
     def __init__(self, audio_path):
         """
         Parameters
@@ -51,16 +51,16 @@ class GenreClassification:
         predictions_tensor = predictions['dense_3']
         genres_predictions = predictions_tensor.numpy()
         self.__genres_predictions = {
-            "blues" : genres_predictions[0,0],
-            "classical" : genres_predictions[0,1],
-            "country" : genres_predictions[0,2],
-            "disco" : genres_predictions[0,3],
-            "hiphop" : genres_predictions[0,4],
-            "jazz" : genres_predictions[0,5],
-            "metal" : genres_predictions[0,6],
-            "pop" : genres_predictions[0,7],
-            "reggae" : genres_predictions[0,8],
-            "rock" : genres_predictions[0,9]}
+            cns.BLUES : genres_predictions[0,0],
+            cns.CLASSICAL : genres_predictions[0,1],
+            cns.COUNTRY : genres_predictions[0,2],
+            cns.DISCO : genres_predictions[0,3],
+            cns.HIPHOP : genres_predictions[0,4],
+            cns.JAZZ : genres_predictions[0,5],
+            cns.METAL : genres_predictions[0,6],
+            cns.POP : genres_predictions[0,7],
+            cns.REGGAE : genres_predictions[0,8],
+            cns.ROCK : genres_predictions[0,9]}
 
     def __Data_preparation(self):
         """

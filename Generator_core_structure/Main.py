@@ -62,14 +62,14 @@ def Dataset_selection(dataset_database : list[Dataset], genre_classification : G
         for key in d_genres_prediction:
             genre_dif += d_genres_prediction[key] - genre_predictions[key]
 
-        genres_difs[i] = np.abs(genre_dif)
+        genres_difs.append(np.abs(genre_dif))
 
     genre_pass_datasets = []
 
     for i in range(5):
-        index_of_max = np.argmax(genres_difs)
-        genre_pass_datasets[i] = dataset_database[genres_difs[index_of_max]]
-        genres_difs[index_of_max] = 0
+        index_of_min = int(np.argmin(genres_difs))
+        genre_pass_datasets.append( dataset_database[index_of_min])
+        genres_difs[index_of_min] = 255
 
     this_tempo_dif = 100
     selected_dataset = Dataset
@@ -94,15 +94,11 @@ def Dataset_selection(dataset_database : list[Dataset], genre_classification : G
     return selected_dataset
 
 def Load_dataset_database():
-    with open ("dataset_database.json", "r") as fp:
+    with open ("Generator_core_structure/dataset_database.json", "r") as fp:
         dataset_database_json = json.load(fp,)
 
     dataset_database = [Dataset(**dataset) for dataset in dataset_database_json]
-
-    for dataset in dataset_database:
-        print (dataset.to_dict())
-
-    return [Dataset]
+    return dataset_database
 
 
 if __name__ == "__main__":

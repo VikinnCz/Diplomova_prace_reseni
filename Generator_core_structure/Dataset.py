@@ -1,14 +1,14 @@
 class Dataset:
 
     def __init__(self, genre : dict, tempo : int, mood : int, anim_blocks):
-        self._genre = genre
-        self._tempo = tempo
-        self._mood = mood
-        self._anim_blocks = anim_blocks
+        self.__genre = genre
+        self.__tempo = tempo
+        self.__mood = mood
+        self.__anim_blocks = anim_blocks
 
     @property
     def genre(self):
-        return self._genre
+        return self.__genre
     
     @property
     def tempo(self):
@@ -21,3 +21,10 @@ class Dataset:
     @property
     def anim_blocks(self):
         return self.__anim_blocks
+    
+    def to_dict(self):
+        return {
+        "genre": self.__genre,
+        "tempo": self.__tempo,
+        "mood": self.__mood,
+        "anim_blocks": self.__anim_blocks}
