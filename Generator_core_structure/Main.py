@@ -2,6 +2,8 @@ import os
 import json
 import Constants
 import numpy as np
+import librosa
+import pyloudnorm as pyln
 
 from Dataset import Dataset
 from Segmentation import Segmentation
@@ -10,7 +12,7 @@ from AnimationBlock import AnimationBlock
 from ChromaFeatures import ChromaFeatures
 from GenreClassification import GenreClassification
 
-def Code_generation(beat_tracking:BeatTracking, chroma_features:ChromaFeatures):
+def Code_generation(y, sr, beat_tracking:BeatTracking, chroma_features:ChromaFeatures):
     WHOLE = 4
     HALF = 1
     QUOTER = 0
@@ -20,10 +22,51 @@ def Code_generation(beat_tracking:BeatTracking, chroma_features:ChromaFeatures):
     times = beat_tracking.times
     chroma = chroma_features.crhoma
     tones_colors = chroma_features.tones_colors
+    segments = segmentation.bounds
 
     beats_stength_median = np.median(beats_strength)
+    audio_loudness = Calc_loudness(y,sr)
 
     timeline_animations = []
+    completed = False
+
+    start_beat = beats[0]
+    while not completed:
+
+        # TODO: Vybrat vhodný blok animace
+            # TODO: Segment
+                # TODO: Délka segmentu - začátek a konec
+                # TODO: O jaký segment se jedná (loudness segmentu v poměru loudness celé skladby)
+            # TODO: Beat 
+                # TODO: O jaký beat se jedná jeho síla v okolí času. 
+                # TODO: Jeho síla v porovnání s mediánem síly ostatních beatů v celé skladbě
+                # TODO: Jeho síla v porovnání s mediánem síly ostatních beatů v daném segmentu
+            # TODO: Čas k dalšímu podobnému beatu
+        
+        # V jakém segmentu se nachází start_beat
+        start_segment, end_segment = Find_segment(segments, start_beat)
+        segment_duration = end_segment - start_beat
+
+        # Hlasitost segmentu
+        segment_loudness = Calc_loudness(start_time=start_segment, end_time=end_segment, y=y, sr=sr)
+
+
+
+        # TODO: Přiřazení barev
+
+        # TODO: Délka animace
+
+        # TODO: Vygenerování spectoda codu animace.
+        # TODO: Vybrat následující start_beat jako end_beat
+        start_beat = end_beat
+
+        # TODO: Kontrolní podmínka jestli už je vygenerovaná animace pro celou skladbu
+
+
+
+
+
+
 
     for index, beat in enumerate(beats):
 
@@ -47,15 +90,39 @@ def Code_generation(beat_tracking:BeatTracking, chroma_features:ChromaFeatures):
     print (len(timeline_animations)) #Počet animací
     return timeline_animations
 
+def Find_segment(array, value):
+    array = np.asarray(array)
+    idx = ((array - value)).argmin()
+
+    if array[idx] > value:
+        idx -= 1
+
+    return array[idx], array[idx+1]
+
+def Calc_loudness(start_time, end_time, y, sr):
+    start_sample = int(sr*start_time)
+    end_sample = int(sr*end_time)
+    meter = pyln.Meter(sr)
+    loudness = meter.integrated_loudness(y[start_sample:end_sample])
+    return loudness
+
+def Calc_loudness(y, sr):
+    meter = pyln.Meter(sr)
+    loudness = meter.integrated_loudness(y)
+    return loudness
+
+
+
+
+
 def Dataset_selection(dataset_database : list[Dataset], genre_classification : GenreClassification, beat_tracking : BeatTracking, mood : int):
     
-    genre = genre_classification.genre
     genre_predictions = genre_classification.genres_predictions
     tempo = beat_tracking.tempo
 
     genres_difs = []
 
-    # Broesing thru all datasets
+    # Browsing thru all datasets
     for i, dataset in enumerate(dataset_database):
         genre_dif = 0
         d_genres_prediction = dataset.genre
@@ -109,16 +176,19 @@ if __name__ == "__main__":
     dataset_database = Load_dataset_database()
     mood = Constants.HAPPY
 
+    y, sr = librosa.load(audio_path)
+
+    # TODO: Předělat všechny třídy s audio_path na (y, sr)
     beat_tracking = BeatTracking(audio_path=audio_path)
     chroma_features = ChromaFeatures(audio_path=audio_path, mood=mood)
     genre_classification = GenreClassification(audio_path=audio_path)
-    segmentation = Segmentation(audio_path=audio_path, chroma_features=chroma_features)
+    segmentation = Segmentation(chroma_features=chroma_features)
     segmentation.bounds
     
 
     dataset = Dataset_selection(dataset_database, genre_classification, beat_tracking, mood)
 
-    timeline_animations = Code_generation(beat_tracking, chroma_features)
+    timeline_animations = Code_generation(y, sr, beat_tracking, chroma_features)
     spectoda_code = ''.join(timeline_animations)
     print(spectoda_code)
 
@@ -128,6 +198,6 @@ if __name__ == "__main__":
 # Počet generovaných segmentů (number_of_segments)
 
 
-#TODO: Jak vybírat datasety abych pro každý žánr nemusel mít dataset pro každou náladu (40 datasetů). 
+#Jak vybírat datasety abych pro každý žánr nemusel mít dataset pro každou náladu (40 datasetů). 
     # Řešení 1: žánr bude mít nejnižší prioritu při výběru. Prioritní bude mood a tempo až nakonec žánr.
     # Řešení 2: parametr genre bude list a každý dataset může být pro několik žánrů. Například to může být pole s hodnotou pro každý žánr a tato hodnota bude určovat vhodnost pro daný žánr. Tato hodnota se pak porovnává s hodnotama pravděpodobnosti pro daný žánr. Vybere se 5 nejvíce hodících a z těch se následně vybírá nejpodobnější náladě a tempu.

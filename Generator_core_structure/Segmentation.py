@@ -9,8 +9,6 @@ class Segmentation:
 
     Atributes
     ----------
-    audio_path: str
-        Address for localization of audio file to analyze.
     chroma_features : ChromaFeatures
         Is class object that provides important information abou chrom structure of audio.
     number_of_segments : int, optional
@@ -24,20 +22,16 @@ class Segmentation:
 
     """
 
-    def __init__(self, audio_path : str,
-                    chroma_features : ChromaFeatures,
+    def __init__(self, chroma_features : ChromaFeatures,
                     number_of_segments = 12):
         """
         Parameters
         ----------
-        audio_path: str
-            Address for localization of audio file to analyze.
         chroma_features : ChromaFeatures
             Is class object that provides important information abou chrom structure of audio.
         number_of_segments : int, optional
             This number determines into how many segments the recording is dividede. Default value is 12. 
         """
-        self.__audio_path = audio_path
         self.__chroma_features = chroma_features
         self.__number_of_segments = number_of_segments
         self.__Calc_segments()
