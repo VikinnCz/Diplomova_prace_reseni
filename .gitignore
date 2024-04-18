@@ -8,6 +8,7 @@
 *.exe
 *.wav
 *.flac
+*.mp3
 *.png
 *.ttl
 *.eps
