@@ -8,8 +8,10 @@ class BeatTracking:
 
     Atributes
     ----------
-    audio_path : str
-        Address for localization of audio file to analyze.
+    y : array
+        Samples of audio for analyze.
+    sr : float
+        Sample rate of audio for analyze.
     beats : array
         Array of obtained beats.
     strength : array
@@ -32,29 +34,34 @@ class BeatTracking:
     """
 
 
-    def __init__(self, audio_path):
+    def __init__(self, y, sr):
         """
         Parameters
         ----------
-        audio_path : str
-            Address for lacalization of audio file to analyze.
+        y : array
+            Samples of audio for analyze.
+        sr : float
+            Sample rate of audio for analyze.
         """
-        self.__Calc_beats(audio_path)
+        self.__y = y
+        self.__sr = sr
+        self.__Calc_beats()
 
-    def __Calc_beats(self, audio_path):
+    def __Calc_beats(self):
         """
         Function use the librosa library to analyze the audio file. The output is an array of beats.
 
         Parameters
         ----------
-        audio_path : str
-            Address for lacalization of audio file to analyze.
+        y : array
+            Samples of audio for analyze.
+        sr : float
+            Sample rate of audio for analyze.
         """
 
-        y, sr = librosa.load(audio_path)
-        self.__tempo, self.__beats = librosa.beat.beat_track(y=y, sr=sr)
-        onset_env = librosa.onset.onset_strength(y=y, sr=sr, aggregate=np.median)
-        self.__times = librosa.times_like(onset_env, sr=sr, hop_length=512)
+        self.__tempo, self.__beats = librosa.beat.beat_track(y=self.__y, sr=self.__sr)
+        onset_env = librosa.onset.onset_strength(y=self.__y, sr=self.__sr, aggregate=np.median)
+        self.__times = librosa.times_like(onset_env, sr=self.__sr, hop_length=512)
         self.__beats = self.__times[self.__beats] # Transform beats into their timestamps
         
         self.__Calc_strength(onset_env)

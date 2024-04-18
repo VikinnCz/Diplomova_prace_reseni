@@ -74,9 +74,7 @@ def Code_generation(y, sr, beat_tracking:BeatTracking, chroma_features:ChromaFea
 
         print(f"Time to similar beat : {time_to_similar_beat}")
 
-        # TODO: Logika pro vybrání anim bloku ze zjištěných parametrů
-                # TODO: O jaký se jedná segment (krátký hlasitý - přechod, Dlouhý hlasitý vs dlouhý ticý)
-
+        # Logika pro vybrání anim bloku ze zjištěných parametrů
         is_long = None
         is_loud = None
         is_importent_in_audion = None
@@ -120,12 +118,12 @@ def Code_generation(y, sr, beat_tracking:BeatTracking, chroma_features:ChromaFea
         anim_blocks = dataset.anim_blocks
         anim_block = next(block for block in anim_blocks if block.anim_characteristics == anim_char)
         
-        # TODO: Délka animace
+        # Délka animace
         anim_duration = anim_block.anim_length
         end_beat = beats[Find_nearest_beat(y=beats, time=start_beat+anim_duration)]
-        # TODO: Potřeba na základě rozdílu mezi časem animace a časy beatů zrychlit nebo spomalit animaci aby končila přesně na beat a nebyla useklá. 
+        
+        # Modifikace času animace
         time_to_end_beat = end_beat - start_beat
-
         if time_to_end_beat == 0:
             completed = True
             time_to_end_beat = audio_duration - start_beat
@@ -133,11 +131,7 @@ def Code_generation(y, sr, beat_tracking:BeatTracking, chroma_features:ChromaFea
         time_modifier = anim_duration/time_to_end_beat
         print(f"Time modifier : {time_modifier}")
 
-        # TODO: Přiřazení barev
-
-
-
-
+        # Přiřazení barev
         color_range = anim_block.anim_color
         anim_code = anim_block.anim_code
         primary_tone = []
@@ -148,16 +142,17 @@ def Code_generation(y, sr, beat_tracking:BeatTracking, chroma_features:ChromaFea
 
         chroma_in_range = np.sum(chroma[:,time_index_start[0]:time_index_end[0]], axis=1)
 
+        # n barev dle color_range bloku animace
         for i in range(color_range):
             primary_tone.append(chroma_in_range.argmax())
             chroma_in_range[primary_tone[i]] = 0
 
-        # TODO: n barev dle colors
         for i in range(len(primary_tone)):
             index = int(primary_tone[i])
             tone_color = tones_colors[index]
             colors.append('#%02x%02x%02x' % (tone_color[0], tone_color[1], tone_color[2]))
 
+        # Vygenerování spectoda codu animace.
         match color_range:
             case 0:
                 anim_code = anim_code.format(start_beat = start_beat,
@@ -181,16 +176,15 @@ def Code_generation(y, sr, beat_tracking:BeatTracking, chroma_features:ChromaFea
                             color_0 = colors[0],
                             color_1 = colors[1],
                             color_2 = colors[2])    
-
-        # TODO: Vygenerování spectoda codu animace.
         timeline_animations.append(anim_code)
-        # TODO: Vybrat následující start_beat jako end_beat
+
+        # Nastavení následujícího start_beat jako momentální end_beat
         start_beat = end_beat
         start_beat_index = Find_nearest_beat(beats, end_beat)
+        print(f"End beat time: {end_beat}")
 
         # TODO: Kontrolní podmínka jestli už je vygenerovaná animace pro celou skladbu'
-        print(f"End beat time: {end_beat}")
-        if end_beat > audio_duration:
+        if end_beat > audio_duration or completed:
             completed = True
             print("Anim generation COMPLETD")
 
@@ -388,18 +382,19 @@ def Load_dataset_database():
 
 if __name__ == "__main__":
     # audio_path = "Referencni_skladby/Imanbek & BYOR - Belly Dancer (Official Music Video).wav"
-    audio_path = "Referencni_skladby/The Beatles - Abbey Road (1969) (2012 180g Vinyl 24bit-96kHz) [FLAC] vtwin88cube/07.-Here Comes The Sun.wav"
+    # audio_path = "Referencni_skladby/The Beatles - Abbey Road (1969) (2012 180g Vinyl 24bit-96kHz) [FLAC] vtwin88cube/07.-Here Comes The Sun.wav"
     # audio_path = "Referencni_skladby/The Beatles - Abbey Road (1969) (2012 180g Vinyl 24bit-96kHz) [FLAC] vtwin88cube/01.-Come Together.wav"
+    audio_path = "Referencni_skladby/BABYMONSTER - SHEESH MV.mp3"
 
     dataset_database = Load_dataset_database()
     mood = cns.HAPPY
 
-    y, sr = librosa.load(audio_path)
+    y, sr = librosa.load(path=audio_path, sr=22050, mono=True)
 
     # TODO: Předělat všechny třídy s audio_path na (y, sr)
-    beat_tracking = BeatTracking(audio_path=audio_path)
-    chroma_features = ChromaFeatures(audio_path=audio_path, mood=mood)
-    genre_classification = GenreClassification(audio_path=audio_path)
+    beat_tracking = BeatTracking(y=y, sr=sr)
+    chroma_features = ChromaFeatures(y=y, sr=sr, mood=mood)
+    genre_classification = GenreClassification(y=y, sr=sr)
     segmentation = Segmentation(chroma_features=chroma_features)
     segmentation.bounds
     

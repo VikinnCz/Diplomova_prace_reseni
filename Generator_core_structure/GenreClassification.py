@@ -12,8 +12,10 @@ class GenreClassification:
 
     Atributes
     ----------
-    audio_path : str
-        Address for localization of audio file to analyze.
+    y : array
+        Samples of audio for analyze.
+    sr : float
+        Sample rate of audio for analyze.
     genre_predictions : ndarray
         Array of predicted values. Each value belongs to the unique genre.
 
@@ -24,14 +26,17 @@ class GenreClassification:
     genre : float
         Get genre with the highest probability.
     """
-    def __init__(self, audio_path):
+    def __init__(self, y, sr):
         """
         Parameters
         ----------
-        audio_path : str
-            Address for lacalization of audio file to analyze.
+        y : array
+            Samples of audio for analyze.
+        sr : float
+            Sample rate of audio for analyze.
         """
-        self.__audio_path = audio_path
+        self.__y = y
+        self.__sr = sr
         self.__Predict_genre()
         
     def __Predict_genre(self):
@@ -67,10 +72,11 @@ class GenreClassification:
         This function prepare audio file to the format which is requires the neural network model. Data needs to be mono 25 s long and in sample rate 22050 Hz. Then is calculate mel spectogram. Then the spectogram is converted into a tensor. 
         """
         # Load the audio file.
-        y, sr = librosa.load(self.__audio_path, sr=22050, mono=True, duration=25) 
+        y = self.__y[(10*self.__sr):(35*self.__sr)]
+
         
         # Calculate melspectogram.
-        mel = self.__Calc_melspec(y=y, sr=sr)
+        mel = self.__Calc_melspec(y)
 
         # Convert ndArray to tensors.
         tensor = tf.constant(mel)
@@ -79,7 +85,7 @@ class GenreClassification:
 
         return tensor
 
-    def __Calc_melspec(self, y, sr):
+    def __Calc_melspec(self,y):
         """
         This function calcutale mel spectogram based on librosa librare.
         """
@@ -88,7 +94,7 @@ class GenreClassification:
         n_fft = 1024
 
         # Calculate the melspectogram of the provided audio data
-        mel = librosa.feature.melspectrogram(y=y, sr=sr, n_fft=n_fft, hop_length=hop_length, n_mels=n_mels)
+        mel = librosa.feature.melspectrogram(y=y, sr=self.__sr, n_fft=n_fft, hop_length=hop_length, n_mels=n_mels)
         return mel
     
     @property

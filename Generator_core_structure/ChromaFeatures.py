@@ -15,8 +15,10 @@ class ChromaFeatures:
 
     Atributes
     ----------
-    audio_path : str
-        Address for localization of audio file to analyze.
+    y : array
+        Samples of audio for analyze.
+    sr : float
+        Sample rate of audio for analyze.
     mood : int
         Mood of the music song.
     chroma : array
@@ -32,17 +34,20 @@ class ChromaFeatures:
         Return chromagram in array values.
         
     """
-    def __init__(self, audio_path, mood):
+    def __init__(self, y, sr, mood):
         """
         Parameters
         ----------
-        audio_path : str
-            Address for lacalization of audio file to analyze.
+        y : array
+            Samples of audio for analyze.
+        sr : float
+            Sample rate of audio for analyze.
         mood : int
             Mood of the music song.
         """
+        self.__y = y
+        self.__sr = sr
         self.__mood = mood
-        self.__audio_path = audio_path
         self.__Calc_color_palette()
 
     def __Calc_chroma_librosa(self):
@@ -51,11 +56,8 @@ class ChromaFeatures:
 
         Librosa library compute chromagram based on CQT chroma analysis. The function use preprocesing methods a postprocesing methods to improve analysis results.
         """
-         # Load the audio file.
-        y, self.__sr = librosa.load(self.__audio_path)
-
         # Preprocesing by extraction haromic elements from audio.
-        y_harm = librosa.effects.harmonic(y=y, margin=8)
+        y_harm = librosa.effects.harmonic(y=self.__y, margin=8)
 
         chroma_harm = librosa.feature.chroma_cqt(y=y_harm, sr=self.__sr) # CQT chromagram calculation.
         chroma_filter = np.minimum(chroma_harm, librosa.decompose.nn_filter(chroma_harm, aggregate=np.median, metric= 'cosine'))
