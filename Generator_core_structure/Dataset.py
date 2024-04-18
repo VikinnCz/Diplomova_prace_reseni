@@ -1,3 +1,5 @@
+from AnimationBlock import AnimationBlock
+
 class Dataset:
 
     def __init__(self, genre : dict, tempo : int, mood : int, anim_blocks):
@@ -20,7 +22,7 @@ class Dataset:
 
     @property
     def anim_blocks(self):
-        return self.__anim_blocks
+        return [AnimationBlock(**block) for block in self.__anim_blocks]
     
     def to_dict(self):
         return {

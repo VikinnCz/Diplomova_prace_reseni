@@ -1,9 +1,10 @@
 import os
 import json
-import Constants
+import Constants as cns
 import numpy as np
 import librosa
 import pyloudnorm as pyln
+from multipledispatch import dispatch
 
 from Dataset import Dataset
 from Segmentation import Segmentation
@@ -12,7 +13,9 @@ from AnimationBlock import AnimationBlock
 from ChromaFeatures import ChromaFeatures
 from GenreClassification import GenreClassification
 
+
 def Code_generation(y, sr, beat_tracking:BeatTracking, chroma_features:ChromaFeatures):
+    os.system("cls")
     WHOLE = 4
     HALF = 1
     QUOTER = 0
@@ -24,92 +27,307 @@ def Code_generation(y, sr, beat_tracking:BeatTracking, chroma_features:ChromaFea
     tones_colors = chroma_features.tones_colors
     segments = segmentation.bounds
 
-    beats_stength_median = np.median(beats_strength)
-    audio_loudness = Calc_loudness(y,sr)
+    beats_stength_median = Calc_median(beats_strength)
+    audio_loudness = Calc_loudness(y, sr)
 
     timeline_animations = []
     completed = False
 
     start_beat = beats[0]
+    start_beat_index = 0
     while not completed:
-
-        # TODO: Vybrat vhodný blok animace
-            # TODO: Segment
-                # TODO: Délka segmentu - začátek a konec
-                # TODO: O jaký segment se jedná (loudness segmentu v poměru loudness celé skladby)
-            # TODO: Beat 
-                # TODO: O jaký beat se jedná jeho síla v okolí času. 
-                # TODO: Jeho síla v porovnání s mediánem síly ostatních beatů v celé skladbě
-                # TODO: Jeho síla v porovnání s mediánem síly ostatních beatů v daném segmentu
-            # TODO: Čas k dalšímu podobnému beatu
-        
+        # Délka sklabdy v sekundách
+        audio_duration = len(y) / sr
+        print(f"Audio duration : {audio_duration}")
+    
         # V jakém segmentu se nachází start_beat
         start_segment, end_segment = Find_segment(segments, start_beat)
+
+        if end_segment == None:
+            end_segment = audio_duration
+
         segment_duration = end_segment - start_beat
+        print(f"Segment duration : {segment_duration}")
 
         # Hlasitost segmentu
-        segment_loudness = Calc_loudness(start_time=start_segment, end_time=end_segment, y=y, sr=sr)
+        segment_loudness = Calc_loudness(y=y, sr=sr, start_time=start_segment, end_time=end_segment)
+        # segment_vs_audio = segment_loudness - audio_loudness
+        # print(f"Segment vs audio : {segment_vs_audio}")
 
+        # Beat parametry
+        # Porovnání síly beatu s mediánem sil beatů ve skladbě.
+        start_beat_strength = beats_strength[start_beat_index]
+        # start_beat_vs_audio = start_beat_strength - beats_stength_median
+        # print(f"Start beat vs audio : {start_beat_vs_audio}")
 
+        # Porovnání síly beatu s mediánem sil beatů ve sklabě.
+        segment_end_beat_index = Find_nearest_beat(end_segment, beats)
+        segment_beat_strength_median = Calc_median(y=beats_strength,
+                                                    start_beat_index=start_beat_index,
+                                                    end_beat_index=segment_end_beat_index)
+        # start_beat_vs_segment = start_beat_strength - segment_beat_strength_median
+        # print(f"Start beat vs segment : {start_beat_vs_segment}")
+
+        # Čas k dalšímu nejpodobnějšímu beatu v segmentu.
+        next_similar_beat =  beats[Find_next_similar_beat(beats_strength, start_beat_index, segment_end_beat_index)]
+        time_to_similar_beat = next_similar_beat - start_beat
+
+        print(f"Time to similar beat : {time_to_similar_beat}")
+
+        # TODO: Logika pro vybrání anim bloku ze zjištěných parametrů
+                # TODO: O jaký se jedná segment (krátký hlasitý - přechod, Dlouhý hlasitý vs dlouhý ticý)
+
+        is_long = None
+        is_loud = None
+        is_importent_in_audion = None
+        is_impoftent_in_segment = None
+
+        # Segment
+        if (segment_duration > 0.1*audio_duration):
+            # Dlouhý segment
+            is_long = True
+        else:
+            is_long = False
+            # Krátký segment
+
+        if(segment_loudness > 0.7*audio_loudness):
+            # Hlasitý segment
+            is_loud = True
+        else:
+            # Tichý segment
+            is_loud = False
+        # Beat
+        if(start_beat_strength > 0.7*beats_stength_median):
+            # Významný v nahrávce
+            is_importent_in_audio = True
+        else:
+            # Nevýznamný v nahrávce
+            is_importent_in_audio = False
+
+        if(start_beat_strength > 0.7*segment_beat_strength_median):
+            # Významný v segmentu
+            is_impoftent_in_segment = True
+        else:
+            # Nevýznamný v segmentu
+            is_impoftent_in_segment = False
+
+        anim_char = Char_selection(
+                    is_long = is_long,
+                    is_loud = is_loud,
+                    is_importent_in_audion = is_importent_in_audio,
+                    is_importent_in_segment = is_impoftent_in_segment)
+        print(f"Anim char is : {anim_char}")
+        anim_blocks = dataset.anim_blocks
+        anim_block = next(block for block in anim_blocks if block.anim_characteristics == anim_char)
+        
+        # TODO: Délka animace
+        anim_duration = anim_block.anim_length
+        end_beat = beats[Find_nearest_beat(y=beats, time=start_beat+anim_duration)]
+        # TODO: Potřeba na základě rozdílu mezi časem animace a časy beatů zrychlit nebo spomalit animaci aby končila přesně na beat a nebyla useklá. 
+        time_to_end_beat = end_beat - start_beat
+
+        if time_to_end_beat == 0:
+            completed = True
+            time_to_end_beat = audio_duration - start_beat
+
+        time_modifier = anim_duration/time_to_end_beat
+        print(f"Time modifier : {time_modifier}")
 
         # TODO: Přiřazení barev
 
-        # TODO: Délka animace
+
+
+
+        color_range = anim_block.anim_color
+        anim_code = anim_block.anim_code
+        primary_tone = []
+        colors = []
+
+        time_index_start =np.where(times == start_beat)[0]
+        time_index_end = np.where(times == end_beat)[0]
+
+        chroma_in_range = np.sum(chroma[:,time_index_start[0]:time_index_end[0]], axis=1)
+
+        for i in range(color_range):
+            primary_tone.append(chroma_in_range.argmax())
+            chroma_in_range[primary_tone[i]] = 0
+
+        # TODO: n barev dle colors
+        for i in range(len(primary_tone)):
+            index = int(primary_tone[i])
+            tone_color = tones_colors[index]
+            colors.append('#%02x%02x%02x' % (tone_color[0], tone_color[1], tone_color[2]))
+
+        match color_range:
+            case 0:
+                anim_code = anim_code.format(start_beat = start_beat,
+                            end_beat = end_beat,
+                            time_modifier = time_modifier)
+            case 1:
+                anim_code = anim_code.format(start_beat = start_beat,
+                            end_beat = end_beat,
+                            time_modifier = time_modifier,
+                            color_0 = colors[0])
+            case 2:
+                anim_code = anim_code.format(start_beat = start_beat,
+                            end_beat = end_beat,
+                            time_modifier = time_modifier,
+                            color_0 = colors[0],
+                            color_1 = colors[1])
+            case 3:
+                anim_code = anim_code.format(start_beat = start_beat,
+                            end_beat = end_beat,
+                            time_modifier = time_modifier,
+                            color_0 = colors[0],
+                            color_1 = colors[1],
+                            color_2 = colors[2])    
 
         # TODO: Vygenerování spectoda codu animace.
+        timeline_animations.append(anim_code)
         # TODO: Vybrat následující start_beat jako end_beat
         start_beat = end_beat
+        start_beat_index = Find_nearest_beat(beats, end_beat)
 
-        # TODO: Kontrolní podmínka jestli už je vygenerovaná animace pro celou skladbu
+        # TODO: Kontrolní podmínka jestli už je vygenerovaná animace pro celou skladbu'
+        print(f"End beat time: {end_beat}")
+        if end_beat > audio_duration:
+            completed = True
+            print("Anim generation COMPLETD")
 
 
 
 
 
 
+    # Staré řešení pro umísťování animací na beaty.
+    #_________________________________________________
+    # for index, beat in enumerate(beats):
 
-    for index, beat in enumerate(beats):
-
-        if beats_strength[index] > (beats_stength_median-0.2):
-            range = 50
+    #     if beats_strength[index] > (beats_stength_median-0.2):
+    #         range = 50
             
-            time_index =np.where(times == beat)[0]
-            if time_index - range >= 0 and time_index + range < chroma.shape[1]:
-                chroma_in_range = np.sum(chroma[:,int(time_index-range):int(time_index+range)], axis=1)
-                primary_tone = chroma_in_range.argmax()
-            else:
-                primary_tone = chroma[:,time_index].argmax() # Tohle je funkcni bez casoveho rozmezi
+    #         time_index =np.where(times == beat)[0]
+    #         if time_index - range >= 0 and time_index + range < chroma.shape[1]:
+    #             chroma_in_range = np.sum(chroma[:,int(time_index-range):int(time_index+range)], axis=1)
+    #             primary_tone = chroma_in_range.argmax()
+    #         else:
+    #             primary_tone = chroma[:,time_index].argmax() # Tohle je funkcni bez casoveho rozmezi
              
 
-            tone_color = tones_colors[primary_tone]
-            hex_tone_color = '#%02x%02x%02x' % (tone_color[0], tone_color[1], tone_color[2])
+    #         tone_color = tones_colors[primary_tone]
+    #         hex_tone_color = '#%02x%02x%02x' % (tone_color[0], tone_color[1], tone_color[2])
 
-            timeline_animations.append(f"addDrawing({beat:.2f}s, 0.5s, animPlasmaShot(0.5s, {hex_tone_color}, 25%));")
+    #         timeline_animations.append(f"addDrawing({beat:.2f}s, 0.5s, animPlasmaShot(0.5s, {hex_tone_color}, 25%));")
+    #___________________________________________________
 
-    os.system("cls")
+    # os.system("cls")
     print (len(timeline_animations)) #Počet animací
     return timeline_animations
 
-def Find_segment(array, value):
-    array = np.asarray(array)
-    idx = ((array - value)).argmin()
+def Find_segment(y : list, beat_time):
+    y = np.asarray(y)
+    idx = np.abs((y - beat_time)).argmin()
 
-    if array[idx] > value:
+    if y[idx] > beat_time:
         idx -= 1
 
-    return array[idx], array[idx+1]
+    start_segment = y[idx]
+    try:
+        end_segment = y[idx+1]
+    except IndexError:
+        end_segment = None
 
-def Calc_loudness(start_time, end_time, y, sr):
-    start_sample = int(sr*start_time)
-    end_sample = int(sr*end_time)
-    meter = pyln.Meter(sr)
-    loudness = meter.integrated_loudness(y[start_sample:end_sample])
-    return loudness
+    return start_segment, end_segment
 
-def Calc_loudness(y, sr):
-    meter = pyln.Meter(sr)
-    loudness = meter.integrated_loudness(y)
-    return loudness
+def Find_nearest_beat(y : list, time):
+    y = np.asarray(y)
+    idx = np.abs((y - time)).argmin() 
+    return idx
+
+def Find_next_similar_beat(y : list, beat_index : int, end_beat : int):
+    start_beat_strength = y[beat_index]
+    difference = 255
+
+    try:
+        for index, beat_strength in enumerate(y[beat_index+1 : end_beat]):
+            n = np.abs(start_beat_strength - beat_strength)
+            if (difference > n):
+                difference = n
+                idx = index
+        return idx
+    except UnboundLocalError:
+        return beat_index
+
+def Calc_loudness(y, sr, start_time = None, end_time = None):
+    
+    if(start_time == None or end_time == None):
+        meter = pyln.Meter(sr)
+        loudness = meter.integrated_loudness(y)
+        return loudness
+    else:
+        start_sample = int(sr*start_time)
+        end_sample = int(sr*end_time)
+        meter = pyln.Meter(sr)
+        loudness = meter.integrated_loudness(y[start_sample:end_sample])
+        return loudness
+
+def Calc_median(y, start_beat_index = None, end_beat_index = None):
+    if(sr == None or start_beat_index == None or end_beat_index == None):
+        median = np.median(y)
+        return median
+    else:
+        median = np.median(y[start_beat_index:end_beat_index])
+        return median
+    
+def Char_selection(is_long, is_loud, is_importent_in_audion, is_importent_in_segment):
+    match [is_long, is_loud]:
+        case[False, True]:
+            #Krátké úderné
+            match[is_importent_in_audion,is_importent_in_segment]:
+                case[False, True]:
+                    return cns.SHOT
+                case[False, False]:
+                    return cns.PULL
+                case[True, True]:
+                    return cns.BANG
+                case[True, False]:
+                    return cns.SHOT
+                    
+        case[False, False]:
+            #Krátké pohodové
+            match[is_importent_in_audion,is_importent_in_segment]:
+                case[False, True]:
+                    return cns.PULL
+                case[False, False]:
+                    return cns.THEMA
+                case[True, True]:
+                    return cns.SHOT
+                case[True, False]:
+                    return cns.PULL
+        case[True, True]:
+            #Dlouhé úderné
+            #TODO: Možné dodělat pokud je start beat na začátku segmentu je automatikc považován za PULL.
+            match[is_importent_in_audion,is_importent_in_segment]:
+                case[False, True]:
+                    return cns.PULL
+                case[False, False]:
+                    return cns.THEMA
+                case[True, True]:
+                    return cns.SHOT
+                case[True, False]:
+                    return cns.PULL
+        case[True, False]:
+            #TODO: Možné dodělat pokud je start beat na začátku segmentu je automatikc považován za THEMA.
+            #Dlouhé táhnoucí se
+            match[is_importent_in_audion,is_importent_in_segment]:
+                case[False, True]:
+                    return cns.FLOW
+                case[False, False]:
+                    return cns.FLOW
+                case[True, True]:
+                    return cns.PULL
+                case[True, False]:
+                    return cns.THEMA
 
 
 
@@ -174,7 +392,7 @@ if __name__ == "__main__":
     # audio_path = "Referencni_skladby/The Beatles - Abbey Road (1969) (2012 180g Vinyl 24bit-96kHz) [FLAC] vtwin88cube/01.-Come Together.wav"
 
     dataset_database = Load_dataset_database()
-    mood = Constants.HAPPY
+    mood = cns.HAPPY
 
     y, sr = librosa.load(audio_path)
 
