@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generátor Animace</title>
+</head>
+<body>
+    <h1>Generátor Animace</h1>
+    <form method="post" enctype="multipart/form-data">
+        <label for="audiofile">Nahrát audio soubor:</label>
+        <input type="file" id="audiofile" name="audiofile" accept="audio/*"><br><br>
+
+        <label for="slider">Vyberte hodnotu:</label>
+        <input type="range" id="slider" name="slider" min="1" max="4" step="1" value="1"><br><br>
+
+        <button type="submit" name="submit_button">Generovat Animaci</button>
+    </form>
+
+    <br>
+    <textarea id="code" name="code" rows="10" cols="50">{{ code }}</textarea>
+</body>
+</html>

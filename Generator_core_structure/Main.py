@@ -3,8 +3,9 @@ import json
 import Constants as cns
 import numpy as np
 import librosa
+import soundfile as sf
 import pyloudnorm as pyln
-from multipledispatch import dispatch
+from io import BytesIO
 
 from Dataset import Dataset
 from Segmentation import Segmentation
@@ -13,12 +14,103 @@ from AnimationBlock import AnimationBlock
 from ChromaFeatures import ChromaFeatures
 from GenreClassification import GenreClassification
 
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 
-def Code_generation(y, sr, beat_tracking:BeatTracking, chroma_features:ChromaFeatures):
+app = Flask(__name__)
+app.secret_key = 'very_secret_key'
+app.config["DEBUG"] = True
+
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    if request.method == 'POST' and 'submit_button' in request.form:
+        # Zkontrolujte, zda soubor byl odeslán
+        if 'audiofile' in request.files and request.files['audiofile'].filename != '':
+            # try:
+                file = request.files['audiofile']
+                slider_value = request.form['slider']
+
+                # Processing
+                file_stream = BytesIO(file.read())
+                y, sr = sf.read(file_stream, dtype="float32")
+
+                spectoda_code = main(y=y, sr=sr, slider_value=slider_value)
+
+                # Send generated code to html template
+                session['processed_data'] = spectoda_code
+                return redirect(url_for('index'))
+            # except:
+            #     session['processed_data'] = "Nastala chyba při generování animace"
+            #     return redirect(url_for('index'))
+        else:
+            session['processed_data'] = "Nebyl vybrán žádný audio soubor."
+            return redirect(url_for('index'))
+
+    processed_data = session.pop('processed_data', None)
+    if processed_data != None:
+        return render_template('main_page.html', code=processed_data)
+
+    return render_template('main_page.html', code="Zde se zobrazí vygenerovaná animace po nahrání souboru a stiknutí talačítka generovat. Tento proces můžechvíli trvat.")
+
+
+def main(y, sr, slider_value):
+
+    dataset_database = Load_dataset_database()
+    mood = cns.HAPPY
+
+    if is_stereo(y=y):
+        y =  np.mean(y, axis=1)
+
+    if sr != 22050:
+        y = librosa.resample(y=y,orig_sr=sr, target_sr=22050,)
+        sr = 22050
+
+    beat_tracking = BeatTracking(y=y, sr=sr)
+    chroma_features = ChromaFeatures(y=y, sr=sr, mood=mood)
+    genre_classification = GenreClassification(y=y, sr=sr)
+    segmentation = Segmentation(chroma_features=chroma_features)
+    segmentation.bounds
+
+
+    dataset = Dataset_selection(dataset_database, genre_classification, beat_tracking, mood)
+
+    timeline_animations = Code_generation(y=y,
+                                        sr=sr,
+                                        dataset=dataset,
+                                        beat_tracking=beat_tracking,
+                                        chroma_features=chroma_features,
+                                        segmentation=segmentation)
+    spectoda_code = ''.join(timeline_animations)
+    return spectoda_code
+
+def is_stereo(y):
+    if y.ndim == 1:
+        return False  # Audio je mono
+    elif y.ndim == 2 and y.shape[1] == 1:
+        return False  # Audio je také mono, ale s explicitním jedním kanálem
+    else:
+        return True  # Audio má více kanálů (stereo nebo vícekanálové)
+
+def Code_generation(y, sr, dataset:Dataset, beat_tracking:BeatTracking, chroma_features:ChromaFeatures, segmentation:Segmentation):
+    """
+    Main function that generates spectoda code of animation. The function run through all beats and segments of audio a assignins anim_blocks to this beats. Function uses others analyzed parameters to calculate time, colors and suitability of the animation block.
+
+    Parameters
+    ----------
+    y : array
+        Samples of audio for analyze.
+    sr : float
+        Sample rate of audio for analyze.
+        beat_tracking
+    beat_tracking : BeatTracking
+        Object of analyzed beats
+    chroma_features : ChromaFeatures
+        Object of analyzed chroma features
+    segmentation : Segmentation
+        Object of calculated segments
+
+    """
+
     os.system("cls")
-    WHOLE = 4
-    HALF = 1
-    QUOTER = 0
 
     beats = beat_tracking.beats
     beats_strength = beat_tracking.strength
@@ -51,27 +143,22 @@ def Code_generation(y, sr, beat_tracking:BeatTracking, chroma_features:ChromaFea
 
         # Hlasitost segmentu
         segment_loudness = Calc_loudness(y=y, sr=sr, start_time=start_segment, end_time=end_segment)
-        # segment_vs_audio = segment_loudness - audio_loudness
-        # print(f"Segment vs audio : {segment_vs_audio}")
 
         # Beat parametry
         # Porovnání síly beatu s mediánem sil beatů ve skladbě.
         start_beat_strength = beats_strength[start_beat_index]
-        # start_beat_vs_audio = start_beat_strength - beats_stength_median
-        # print(f"Start beat vs audio : {start_beat_vs_audio}")
+
 
         # Porovnání síly beatu s mediánem sil beatů ve sklabě.
         segment_end_beat_index = Find_nearest_beat(end_segment, beats)
         segment_beat_strength_median = Calc_median(y=beats_strength,
                                                     start_beat_index=start_beat_index,
                                                     end_beat_index=segment_end_beat_index)
-        # start_beat_vs_segment = start_beat_strength - segment_beat_strength_median
-        # print(f"Start beat vs segment : {start_beat_vs_segment}")
 
         # Čas k dalšímu nejpodobnějšímu beatu v segmentu.
+        # TODO: tohle není využito
         next_similar_beat =  beats[Find_next_similar_beat(beats_strength, start_beat_index, segment_end_beat_index)]
         time_to_similar_beat = next_similar_beat - start_beat
-
         print(f"Time to similar beat : {time_to_similar_beat}")
 
         # Logika pro vybrání anim bloku ze zjištěných parametrů
@@ -81,7 +168,7 @@ def Code_generation(y, sr, beat_tracking:BeatTracking, chroma_features:ChromaFea
         is_impoftent_in_segment = None
 
         # Segment
-        if (segment_duration > 0.1*audio_duration):
+        if (segment_duration > 0.2*audio_duration):
             # Dlouhý segment
             is_long = True
         else:
@@ -183,12 +270,10 @@ def Code_generation(y, sr, beat_tracking:BeatTracking, chroma_features:ChromaFea
         start_beat_index = Find_nearest_beat(beats, end_beat)
         print(f"End beat time: {end_beat}")
 
-        # TODO: Kontrolní podmínka jestli už je vygenerovaná animace pro celou skladbu'
+        # Kontrolní podmínka jestli už je vygenerovaná animace pro celou skladbu'
         if end_beat > audio_duration or completed:
             completed = True
             print("Anim generation COMPLETD")
-
-
 
 
 
@@ -214,11 +299,27 @@ def Code_generation(y, sr, beat_tracking:BeatTracking, chroma_features:ChromaFea
     #         timeline_animations.append(f"addDrawing({beat:.2f}s, 0.5s, animPlasmaShot(0.5s, {hex_tone_color}, 25%));")
     #___________________________________________________
 
-    # os.system("cls")
-    print (len(timeline_animations)) #Počet animací
+    print (f"Počet vygenerovaných animací: {len(timeline_animations)}")
     return timeline_animations
 
 def Find_segment(y : list, beat_time):
+    """
+    Function that finds segment from provided list in which is located the beat_time.
+
+    Parameters
+    ----------
+    y : list
+        List times wher the segments boundaries are located
+    beat_time : float
+        Time of the beat which is wanted to locate.
+
+    Returns
+    ----------
+    start_segment : float
+        Time where the located segment starts.
+    end_segment : float
+        Time where the located segment ends.
+    """
     y = np.asarray(y)
     idx = np.abs((y - beat_time)).argmin()
 
@@ -234,11 +335,45 @@ def Find_segment(y : list, beat_time):
     return start_segment, end_segment
 
 def Find_nearest_beat(y : list, time):
+    """
+    This function finds the nearest beat in given list.
+
+    Parameters
+    ----------
+    y : list
+        List of times where the beats are located.
+    time : float
+        Time around that is searching for the nearest beat.
+
+    Returns 
+    ----------
+    idx : int
+        Index of finded beat in the list.
+    """
     y = np.asarray(y)
     idx = np.abs((y - time)).argmin() 
     return idx
 
 def Find_next_similar_beat(y : list, beat_index : int, end_beat : int):
+    """
+    Function that find the nears similar beat to given beat.
+
+    Parameters
+    ----------
+    y : list
+        List of times where the beats are located.
+    beat_index : int
+        Index in list of the given beat.
+    end_beat : int
+        Index of the beat to wchich is searched.
+
+     Returns 
+    ----------
+    idx : int
+        Index of finded most simillar beat in the list.
+    beat_index : int 
+        Index of given beat which is returned if in the list are no mor beats.
+    """
     start_beat_strength = y[beat_index]
     difference = 255
 
@@ -253,7 +388,25 @@ def Find_next_similar_beat(y : list, beat_index : int, end_beat : int):
         return beat_index
 
 def Calc_loudness(y, sr, start_time = None, end_time = None):
-    
+    """
+    Function which calculate loudnes in LUFS for given date. Function can calculate for all the data or in given segment.
+
+    Parameters
+    ----------
+    y : list
+        Audio samples
+    sr : int
+        Sampling rate of audio samples
+    start_time : float | None
+        Start time of the segment in which are the loudness calculated.
+    end_time : float | None
+        End time of the segment in which are the loudness calculated.
+
+    Returns 
+    ----------
+    loundess : float
+        Calculated loudness
+    """
     if(start_time == None or end_time == None):
         meter = pyln.Meter(sr)
         loudness = meter.integrated_loudness(y)
@@ -266,7 +419,7 @@ def Calc_loudness(y, sr, start_time = None, end_time = None):
         return loudness
 
 def Calc_median(y, start_beat_index = None, end_beat_index = None):
-    if(sr == None or start_beat_index == None or end_beat_index == None):
+    if(start_beat_index == None or end_beat_index == None):
         median = np.median(y)
         return median
     else:
@@ -373,7 +526,9 @@ def Dataset_selection(dataset_database : list[Dataset], genre_classification : G
     return selected_dataset
 
 def Load_dataset_database():
-    with open ("Generator_core_structure/dataset_database.json", "r") as fp:
+    __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+
+    with open (os.path.join(__location__, "dataset_database.json"), "r") as fp:
         dataset_database_json = json.load(fp,)
 
     dataset_database = [Dataset(**dataset) for dataset in dataset_database_json]
@@ -381,29 +536,31 @@ def Load_dataset_database():
 
 
 if __name__ == "__main__":
+
+    app.run(debug=True)
     # audio_path = "Referencni_skladby/Imanbek & BYOR - Belly Dancer (Official Music Video).wav"
     # audio_path = "Referencni_skladby/The Beatles - Abbey Road (1969) (2012 180g Vinyl 24bit-96kHz) [FLAC] vtwin88cube/07.-Here Comes The Sun.wav"
     # audio_path = "Referencni_skladby/The Beatles - Abbey Road (1969) (2012 180g Vinyl 24bit-96kHz) [FLAC] vtwin88cube/01.-Come Together.wav"
-    audio_path = "Referencni_skladby/BABYMONSTER - SHEESH MV.mp3"
+    # audio_path = "Referencni_skladby/BABYMONSTER - SHEESH MV.mp3"
+    # audio_path = "Referencni_skladby/Benson Boone - Beautiful Things (Official Music Video).mp3"
 
-    dataset_database = Load_dataset_database()
-    mood = cns.HAPPY
+    # dataset_database = Load_dataset_database()
+    # mood = cns.HAPPY
 
-    y, sr = librosa.load(path=audio_path, sr=22050, mono=True)
+    # y, sr = librosa.load(path=audio_path, sr=22050, mono=True)
 
-    # TODO: Předělat všechny třídy s audio_path na (y, sr)
-    beat_tracking = BeatTracking(y=y, sr=sr)
-    chroma_features = ChromaFeatures(y=y, sr=sr, mood=mood)
-    genre_classification = GenreClassification(y=y, sr=sr)
-    segmentation = Segmentation(chroma_features=chroma_features)
-    segmentation.bounds
+    # beat_tracking = BeatTracking(y=y, sr=sr)
+    # chroma_features = ChromaFeatures(y=y, sr=sr, mood=mood)
+    # genre_classification = GenreClassification(y=y, sr=sr)
+    # segmentation = Segmentation(chroma_features=chroma_features)
+    # segmentation.bounds
     
 
-    dataset = Dataset_selection(dataset_database, genre_classification, beat_tracking, mood)
+    # dataset = Dataset_selection(dataset_database, genre_classification, beat_tracking, mood)
 
-    timeline_animations = Code_generation(y, sr, beat_tracking, chroma_features)
-    spectoda_code = ''.join(timeline_animations)
-    print(spectoda_code)
+    # timeline_animations = Code_generation(y, sr, beat_tracking, chroma_features, segmentation)
+    # spectoda_code = ''.join(timeline_animations)
+    # print(spectoda_code)
 
 
 ## Parametry které je možné nastavovat a na základě toho měnit generování animací. ##
