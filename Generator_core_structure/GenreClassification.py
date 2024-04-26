@@ -1,6 +1,8 @@
+import os
 import librosa
 import numpy as np
 import tensorflow as tf
+from tensorflow import keras
 import Constants as cns
 
 
@@ -43,12 +45,16 @@ class GenreClassification:
         """
         Used neural network model to predict genre probability.
         """
-        model_path = 'Generator_core_structure/model_muj_savedmodel_googleColab_trained/'
+        __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+        model_path = os.path.join(__location__, "model_muj_savedmodel_googleColab_trained/")
+        # model_path = os.path.join(__location__, "saved_model.h5")
+
 
         # Load the model
         model = tf.saved_model.load(model_path)
-        model_infer = model.signatures["serving_default"]
+        # model = tf.keras.models.load_model(model_path)
 
+        model_infer = model.signatures["serving_default"]
         tensor = self.__Data_preparation() #Get data in format which is need for the model
         predictions = model_infer(tensor) # Tensor of data output from the model
 

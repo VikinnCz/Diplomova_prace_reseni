@@ -2,20 +2,85 @@
 <html>
 <head>
     <title>Generátor Animace</title>
+    <style>
+        .slider_window{
+            width: 50%;
+        }
+
+        .slider-wrapper {
+          width: 50%; /* Adjust the width of the slider to your preference */
+          margin: auto;
+        }
+      
+        .slider-labels {
+          display: flex;
+          justify-content: space-between;
+          padding: 0 10px; /* Slight padding on sides to align with the slider */
+        }
+      
+        .slider-labels span {
+          font-size: 14px; /* Smaller font size for labels */
+        }
+      
+        input[type="range"] {
+          width: 100%; /* Make the slider expand to full container width */
+          margin: 10px 0; /* Space above and below the slider */
+        }
+
+        .slider {
+        -webkit-appearance: none;
+        width: 100%;
+        height: 15px;
+        border-radius: 5px;  
+        background: #d3d3d3;
+        outline: none;
+        opacity: 0.7;
+        -webkit-transition: .2s;
+        transition: opacity .2s;
+        }
+
+        .slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 25px;
+        height: 25px;
+        border-radius: 50%; 
+        background: #04AA6D;
+        cursor: pointer;
+        }
+
+        .slider::-moz-range-thumb {
+        width: 25px;
+        height: 25px;
+        border-radius: 50%;
+        background: #04AA6D;
+        cursor: pointer;
+        }
+      </style>
 </head>
 <body>
-    <h1>Generátor Animace</h1>
-    <form method="post" enctype="multipart/form-data">
-        <label for="audiofile">Nahrát audio soubor:</label>
-        <input type="file" id="audiofile" name="audiofile" accept="audio/*"><br><br>
+    <div class="page-body">
+        <h1>Generátor Animace</h1>
+        <form method="post" enctype="multipart/form-data">
+            <label for="audiofile">Nahrát audio soubor:</label>
+            <input type="file" id="audiofile" name="audiofile" accept="audio/*"><br><br>
 
-        <label for="slider">Vyberte hodnotu:</label>
-        <input type="range" id="slider" name="slider" min="1" max="4" step="1" value="1"><br><br>
+            <label for="slider">Vyberte hodnotu:</label><br>
+            <div class="slider_window">
+                <input class="slider" type="range" id="slider" name="slider" min="0" max="3" step="1" value="0">
+                <div class="slider-labels">
+                    <span>CHILL</span>
+                    <span>HANG_OUT</span>
+                    <span>HAPPY</span>
+                    <span>DANCING</span>
+                </div><br><br>
+            </div>
 
-        <button type="submit" name="submit_button">Generovat Animaci</button>
-    </form>
+            <button type="submit" name="submit_button">Generovat Animaci</button>
+        </form>
 
-    <br>
-    <textarea id="code" name="code" rows="10" cols="50">{{ code }}</textarea>
+        <br>
+        <textarea id="code" name="code" rows="10" cols="50">{{ code }}</textarea>
+    </div>
 </body>
 </html>
