@@ -17,7 +17,7 @@ from GenreClassification import GenreClassification
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 
 app = Flask(__name__)
-app.secret_key = 'very_secret_key'
+app.secret_key = 'FFFFFFFFFFFFFFFF'
 app.config["DEBUG"] = True
 
 @app.route('/', methods=['GET', 'POST'])
@@ -49,13 +49,13 @@ def index():
     if processed_data != None:
         return render_template('main_page.html', code=processed_data)
 
-    return render_template('main_page.html', code="Zde se zobrazí vygenerovaná animace po nahrání souboru a stiknutí talačítka generovat. Tento proces můžechvíli trvat.")
+    return render_template('main_page.html', code="Zde se po nahrání souboru a stiknutí talačítka generovat zobrazí vygenerovaný Spectoda kód animace. Proces analýzy a generování skladby může chvíli trvat.")
 
 
 def main(y, sr, slider_value):
 
     dataset_database = Load_dataset_database()
-    mood = cns.HAPPY
+    mood = int(slider_value)
 
     if is_stereo(y=y):
         y =  np.mean(y, axis=1)
@@ -67,19 +67,16 @@ def main(y, sr, slider_value):
     beat_tracking = BeatTracking(y=y, sr=sr)
     chroma_features = ChromaFeatures(y=y, sr=sr, mood=mood)
     genre_classification = GenreClassification(y=y, sr=sr)
-    segmentation = Segmentation(chroma_features=chroma_features)
-    segmentation.bounds
-
+    segmentation = Segmentation(chroma_features=chroma_features, mood=mood)
 
     dataset = Dataset_selection(dataset_database, genre_classification, beat_tracking, mood)
 
-    timeline_animations = Code_generation(y=y,
-                                        sr=sr,
-                                        dataset=dataset,
-                                        beat_tracking=beat_tracking,
-                                        chroma_features=chroma_features,
-                                        segmentation=segmentation)
-    spectoda_code = ''.join(timeline_animations)
+    spectoda_code = Code_generation(y=y,
+                                    sr=sr,
+                                    dataset=dataset,
+                                    beat_tracking=beat_tracking,
+                                    chroma_features=chroma_features,
+                                    segmentation=segmentation)
     return spectoda_code
 
 def is_stereo(y):
@@ -117,10 +114,12 @@ def Code_generation(y, sr, dataset:Dataset, beat_tracking:BeatTracking, chroma_f
     times = beat_tracking.times
     chroma = chroma_features.crhoma
     tones_colors = chroma_features.tones_colors
-    segments = segmentation.bounds
+    segments = segmentation.bounds # [s]
 
     beats_stength_median = Calc_median(beats_strength)
     audio_loudness = Calc_loudness(y, sr)
+    audio_duration = len(y) / sr # [s]
+    print(f"Audio duration : {audio_duration}")
 
     timeline_animations = []
     completed = False
@@ -128,9 +127,6 @@ def Code_generation(y, sr, dataset:Dataset, beat_tracking:BeatTracking, chroma_f
     start_beat = beats[0]
     start_beat_index = 0
     while not completed:
-        # Délka sklabdy v sekundách
-        audio_duration = len(y) / sr
-        print(f"Audio duration : {audio_duration}")
     
         # V jakém segmentu se nachází start_beat
         start_segment, end_segment = Find_segment(segments, start_beat)
@@ -138,7 +134,7 @@ def Code_generation(y, sr, dataset:Dataset, beat_tracking:BeatTracking, chroma_f
         if end_segment == None:
             end_segment = audio_duration
 
-        segment_duration = end_segment - start_beat
+        segment_duration = end_segment - start_beat # [s]
         print(f"Segment duration : {segment_duration}")
 
         # Hlasitost segmentu
@@ -156,52 +152,51 @@ def Code_generation(y, sr, dataset:Dataset, beat_tracking:BeatTracking, chroma_f
                                                     end_beat_index=segment_end_beat_index)
 
         # Čas k dalšímu nejpodobnějšímu beatu v segmentu.
-        # TODO: tohle není využito
-        next_similar_beat =  beats[Find_next_similar_beat(beats_strength, start_beat_index, segment_end_beat_index)]
-        time_to_similar_beat = next_similar_beat - start_beat
-        print(f"Time to similar beat : {time_to_similar_beat}")
+        # next_similar_beat =  beats[Find_next_similar_beat(beats_strength, start_beat_index, segment_end_beat_index)]
+        # time_to_similar_beat = next_similar_beat - start_beat
+        # print(f"Time to similar beat : {time_to_similar_beat}")
 
         # Logika pro vybrání anim bloku ze zjištěných parametrů
         is_long = None
         is_loud = None
-        is_importent_in_audion = None
-        is_impoftent_in_segment = None
+        is_important_in_audio = None
+        is_important_in_segment = None
 
         # Segment
-        if (segment_duration > 0.2*audio_duration):
+        if (segment_duration >= 0.04*audio_duration):
             # Dlouhý segment
             is_long = True
         else:
             is_long = False
             # Krátký segment
 
-        if(segment_loudness > 0.7*audio_loudness):
+        if(segment_loudness >= audio_loudness/0.7):
             # Hlasitý segment
             is_loud = True
         else:
             # Tichý segment
             is_loud = False
         # Beat
-        if(start_beat_strength > 0.7*beats_stength_median):
+        if(start_beat_strength >= 0.5*beats_stength_median):
             # Významný v nahrávce
-            is_importent_in_audio = True
+            is_important_in_audio = True
         else:
             # Nevýznamný v nahrávce
-            is_importent_in_audio = False
+            is_important_in_audio = False
 
-        if(start_beat_strength > 0.7*segment_beat_strength_median):
+        if(start_beat_strength >= 0.7*segment_beat_strength_median):
             # Významný v segmentu
-            is_impoftent_in_segment = True
+            is_important_in_segment = True
         else:
             # Nevýznamný v segmentu
-            is_impoftent_in_segment = False
+            is_important_in_segment = False
 
         anim_char = Char_selection(
                     is_long = is_long,
                     is_loud = is_loud,
-                    is_importent_in_audion = is_importent_in_audio,
-                    is_importent_in_segment = is_impoftent_in_segment)
-        print(f"Anim char is : {anim_char}")
+                    is_important_in_audion = is_important_in_audio,
+                    is_important_in_segment = is_important_in_segment)
+        # print(f"Anim char is : {anim_char}")
         anim_blocks = dataset.anim_blocks
         anim_block = next(block for block in anim_blocks if block.anim_characteristics == anim_char)
         
@@ -216,7 +211,7 @@ def Code_generation(y, sr, dataset:Dataset, beat_tracking:BeatTracking, chroma_f
             time_to_end_beat = audio_duration - start_beat
 
         time_modifier = anim_duration/time_to_end_beat
-        print(f"Time modifier : {time_modifier}")
+        # print(f"Time modifier : {time_modifier}")
 
         # Přiřazení barev
         color_range = anim_block.anim_color
@@ -300,7 +295,7 @@ def Code_generation(y, sr, dataset:Dataset, beat_tracking:BeatTracking, chroma_f
     #___________________________________________________
 
     print (f"Počet vygenerovaných animací: {len(timeline_animations)}")
-    return timeline_animations
+    return ''.join(timeline_animations)
 
 def Find_segment(y : list, beat_time):
     """
@@ -309,7 +304,7 @@ def Find_segment(y : list, beat_time):
     Parameters
     ----------
     y : list
-        List times wher the segments boundaries are located
+        List of times where the segments boundaries are located
     beat_time : float
         Time of the beat which is wanted to locate.
 
@@ -365,7 +360,7 @@ def Find_next_similar_beat(y : list, beat_index : int, end_beat : int):
     beat_index : int
         Index in list of the given beat.
     end_beat : int
-        Index of the beat to wchich is searched.
+        Index of the beat to which is searched.
 
      Returns 
     ----------
@@ -389,7 +384,7 @@ def Find_next_similar_beat(y : list, beat_index : int, end_beat : int):
 
 def Calc_loudness(y, sr, start_time = None, end_time = None):
     """
-    Function which calculate loudnes in LUFS for given date. Function can calculate for all the data or in given segment.
+    Function which calculate loudness in LUFS for given date. Function can calculate for all the data or in given segment.
 
     Parameters
     ----------
@@ -404,7 +399,7 @@ def Calc_loudness(y, sr, start_time = None, end_time = None):
 
     Returns 
     ----------
-    loundess : float
+    loudness : float
         Calculated loudness
     """
     if(start_time == None or end_time == None):
@@ -426,11 +421,11 @@ def Calc_median(y, start_beat_index = None, end_beat_index = None):
         median = np.median(y[start_beat_index:end_beat_index])
         return median
     
-def Char_selection(is_long, is_loud, is_importent_in_audion, is_importent_in_segment):
+def Char_selection(is_long, is_loud, is_important_in_audion, is_important_in_segment):
     match [is_long, is_loud]:
         case[False, True]:
             #Krátké úderné
-            match[is_importent_in_audion,is_importent_in_segment]:
+            match[is_important_in_audion,is_important_in_segment]:
                 case[False, True]:
                     return cns.SHOT
                 case[False, False]:
@@ -442,7 +437,7 @@ def Char_selection(is_long, is_loud, is_importent_in_audion, is_importent_in_seg
                     
         case[False, False]:
             #Krátké pohodové
-            match[is_importent_in_audion,is_importent_in_segment]:
+            match[is_important_in_audion,is_important_in_segment]:
                 case[False, True]:
                     return cns.PULL
                 case[False, False]:
@@ -454,7 +449,7 @@ def Char_selection(is_long, is_loud, is_importent_in_audion, is_importent_in_seg
         case[True, True]:
             #Dlouhé úderné
             #TODO: Možné dodělat pokud je start beat na začátku segmentu je automatikc považován za PULL.
-            match[is_importent_in_audion,is_importent_in_segment]:
+            match[is_important_in_audion,is_important_in_segment]:
                 case[False, True]:
                     return cns.PULL
                 case[False, False]:
@@ -466,7 +461,7 @@ def Char_selection(is_long, is_loud, is_importent_in_audion, is_importent_in_seg
         case[True, False]:
             #TODO: Možné dodělat pokud je start beat na začátku segmentu je automatikc považován za THEMA.
             #Dlouhé táhnoucí se
-            match[is_importent_in_audion,is_importent_in_segment]:
+            match[is_important_in_audion,is_important_in_segment]:
                 case[False, True]:
                     return cns.FLOW
                 case[False, False]:
@@ -476,12 +471,28 @@ def Char_selection(is_long, is_loud, is_importent_in_audion, is_importent_in_seg
                 case[True, False]:
                     return cns.THEMA
 
-
-
-
-
 def Dataset_selection(dataset_database : list[Dataset], genre_classification : GenreClassification, beat_tracking : BeatTracking, mood : int):
+    """
+    Function that return dataset based on audio genre, tempo, and user mood. Function search thru all datasets and compare values of genre prediction. First five datasets with smallest differences in genre prediction values are selected. Then are selected datasets with the same mood and nearest tempo value. 
+
+    Parameters
+    ----------
+    dataset_database : list[Dataset]
+        Database of datasets. 
+    genre_classification : GenreClassification
+        Object with genre predictions data from the audio
+    beat_tracking : BeatTracking
+        Object with Beat tracking data from the audio
+    mood : int
+        User selected mood.
     
+    Returns 
+    ----------
+    selected_dataset : Dataset
+        Dataset which is selected as most suitable.
+    """
+    
+    # Get parameters 
     genre_predictions = genre_classification.genres_predictions
     tempo = beat_tracking.tempo
 
@@ -495,9 +506,9 @@ def Dataset_selection(dataset_database : list[Dataset], genre_classification : G
             genre_dif += d_genres_prediction[key] - genre_predictions[key]
 
         genres_difs.append(np.abs(genre_dif))
-
     genre_pass_datasets = []
 
+    # Get five datasets with smallest genre difference
     for i in range(5):
         index_of_min = int(np.argmin(genres_difs))
         genre_pass_datasets.append( dataset_database[index_of_min])
@@ -506,22 +517,13 @@ def Dataset_selection(dataset_database : list[Dataset], genre_classification : G
     this_tempo_dif = 100
     selected_dataset = Dataset
     
+    # Get dataset with same mood an smallest tempo diference
     for dataset in genre_pass_datasets:
         if dataset.mood == mood:
             new_tempo_dif = abs(dataset.tempo - tempo)
             if this_tempo_dif > new_tempo_dif:
                 this_tempo_dif = new_tempo_dif
                 selected_dataset = dataset
-
-
-    # ---> Tohle je pro dataset s jednou hodnotou žándru.
-    # Broesing thru all datasets
-    # for dataset in dataset_database:
-    #     if dataset.genre == genre and dataset.mood_characteristics == mood:
-    #         new_tempo_difrence = abs(dataset.tempo - tempo)
-    #         if this_tempo_difrence > new_tempo_difrence:
-    #             this_tempo_difrence = new_tempo_difrence
-    #             selected_dataset = dataset
 
     return selected_dataset
 

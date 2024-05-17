@@ -6,7 +6,7 @@ class BeatTracking:
 
     This class analyze rhythmic structure of music song and provides a arrays with beats in times. Also provides strength of the beats.
 
-    Atributes
+    Attributes
     ----------
     y : array
         Samples of audio for analyze.
@@ -17,7 +17,7 @@ class BeatTracking:
     strength : array
         Strength of obtained beats.
     times : array
-        The times in which the botained beats are located.
+        The times in which the obtained beats are located.
     tempo : float
         Tempo of analyzed audio file. In BPM.
 
@@ -30,7 +30,7 @@ class BeatTracking:
     Get_tempo()
         Return tempo of analyzed audio file. In BPM.
     Get_times()
-        Return the times in which the botained beats are located.
+        Return the times in which the obtained beats are located.
     """
 
 
@@ -68,22 +68,22 @@ class BeatTracking:
     
     def __Calc_strength(self, onset_env):
         """
-        Calculate strenght of beats.
+        Calculate strength of beats.
 
-        The function calculate beats strenght based on onset envelope in time of the beat. Function also check range around the beat if there is some bigger value in onset envelope.
+        The function calculate beats strength based on onset envelope in time of the beat. Function also check range around the beat if there is some bigger value in onset envelope.
 
         Parameters
         ----------
         onset_env : ndarray
             Onset envelope
         """
-        self.__strength = np.ones(len(self.__beats)) # Declrataion of ones ndarray.
+        self.__strength = np.ones(len(self.__beats)) # Declaration of ones ndarray.
         i = 0
 
         for beat in self.__beats:
             try:
-                index = np.where(self.__times == beat)[0] # Geting a timestamp of the beat.
-                self.__strength[i] = self.__Max_of_range(int(index), onset_env) # Gets a bigest onset value in range around the timestamp of beat.
+                index = np.where(self.__times == beat)[0] # Getting a timestamp of the beat.
+                self.__strength[i] = self.__Max_of_range(int(index), onset_env) # Gets a biggest onset value in range around the timestamp of beat.
             except ValueError:
                 self.__strength[i] = 0
             i += 1
@@ -94,7 +94,7 @@ class BeatTracking:
         """
         Get max value in range
 
-        The function return max value of array in ragne around index.
+        The function return max value of array in range around index.
 
         Parameters
         ----------

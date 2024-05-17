@@ -1,0 +1,158 @@
+body {
+    display: flex;
+    align-items: center;  /* Centruje obsah vertikálně */
+    justify-content: center;  /* Centruje obsah horizontálně */
+    min-height: 100vh;  /* Minimální výška, aby zabírala celou obrazovku */
+    background-color: #f4f4f4;  /* Barva pozadí pro celou stránku */
+    margin: 0;  /* Odebírá defaultní margin, který mají některé prohlížeče */
+    padding: 0;  /* Odebírá defaultní padding */
+    font-family: 'Arial', sans-serif;
+}
+
+.page-body {
+    width: 80%;
+    max-width: 600px;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    /* Můžete odebrat margin-top zde, protože centrování je globální */
+}
+
+h1 {
+    color: #333;
+}
+
+form {
+    width: 100%;
+}
+
+label {
+    margin-top: 20px;
+    display: block;
+    color: #666;
+}
+
+input[type="file"],
+input[type="range"],
+textarea {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    box-sizing: border-box;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+input[type="file"] {
+    background: #ffffff;
+}
+
+.slider-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+}
+
+.slider-labels span {
+    color: #666;
+    font-size: 0.85em;
+}
+
+button {
+    background-color: #4CAF50; /* Green */
+    color: white;
+    padding: 10px 20px;
+    margin: 20px 0;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+textarea {
+    height: 150px;
+    resize: vertical;
+}
+
+@media (max-width: 768px) {
+    .page-body {
+        width: 95%;  /* Širší na malých zařízeních pro lepší využití prostoru */
+    }
+}
+
+@media (max-width: 480px) {
+    .page-body {
+        padding: 10px;  /* Menší padding na velmi malých zařízeních */
+    }
+}
+
+/* Styling the slider */
+input[type="range"] {
+    -webkit-appearance: none;  /* Zruší standardní vzhled pro WebKit/Blink */
+    width: 100%;  /* Plná šířka kontejneru */
+    height: 8px;  /* Výška sledovacího pruhu */
+    border-radius: 5px;  /* Zaoblené rohy */
+    background: #ddd;  /* Základní barva sledovacího pruhu */
+    outline: none;  /* Odebere obrys při focus */
+    opacity: 0.7;  /* Mírná průhlednost */
+    -webkit-transition: .2s;  /* Plynulý přechod pro WebKit */
+    transition: opacity .2s;
+}
+
+/* Styling the slider thumb */
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;  /* Zruší standardní vzhled pro WebKit */
+    appearance: none;
+    width: 20px;  /* Šířka thumb */
+    height: 20px;  /* Výška thumb */
+    border-radius: 50%;  /* Kulatý thumb */
+    background: #4CAF50;  /* Barva thumb */
+    cursor: pointer;  /* Kurzor ve tvaru ukazatele */
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #4CAF50;
+    cursor: pointer;
+}
+
+/* Styling for focus state */
+input[type="range"]:focus {
+    opacity: 1;  /* Plná opacita při focus */
+}
+
+/* Hover effect for the slider thumb */
+input[type="range"]:hover::-webkit-slider-thumb {
+    background: #45a049;  /* Tmavší zelená při hover */
+}
+
+input[type="range"]:hover::-moz-range-thumb {
+    background: #45a049;
+}
+
+.spinner {
+    border: 4px solid rgba(0,0,0,0.1);
+    width: 20px;
+    height: 20px;
+    margin: 20px;
+    border-radius: 50%;
+    border-left-color: #4CAF50;
+    vertical-align: middle;
+    display: inline-block;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}

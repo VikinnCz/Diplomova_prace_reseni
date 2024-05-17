@@ -16,9 +16,9 @@ HANG_OUT    = 1
 HAPPY       = 2
 DANCING     = 3
 
-# Animation characteristics
-BANG        = 0 # začátek krátkých segmentů (velmi úderné rychlé npř strobo)
-SHOT        = 1 # Klrtátké segmenty. (Přechody - rychlé úderné animace)
-PULL        = 2 # Začátek segmentů. (Úderné animace pro vtažení)
-THEMA       = 3 # Dlouhé segmenty s vyžší hodnotou RMS. (Tématická výplň)
-FLOW        = 4 # Dlouhé segmenty s nižší hodnotou RMS. (Táhlé animace)
+# Animation characteristics constants
+BANG        = 0 # Vhodné pro začátek krátkých segmentů. Velmi úderné a rychlé.
+SHOT        = 1 # Rychlé animace pro kratší segmenty.
+PULL        = 2 # Úderné animace, které vtáhnou do děje na začátku delších segmentů.
+THEMA       = 3 # Primární animace pro delší segmenty obsahuje hlavní téma.
+FLOW        = 4 # Dlouhé pomalé animace pro vyplnění klidných částí skladby.

@@ -18,8 +18,6 @@ class GenreClassification:
         Samples of audio for analyze.
     sr : float
         Sample rate of audio for analyze.
-    genre_predictions : ndarray
-        Array of predicted values. Each value belongs to the unique genre.
 
     Propertys
     ----------

@@ -4,6 +4,8 @@ import numpy as np
 import scipy
 import colorsys
 import Constants
+import tempfile
+import soundfile as sf
 
 class ChromaFeatures:
     """ A class for chroma freature analysis.
@@ -20,7 +22,7 @@ class ChromaFeatures:
     sr : float
         Sample rate of audio for analyze.
     mood : int
-        Mood of the music song.
+        Mood of the user.
     chroma : array
         Computed chromagram.
     tones_colors : array
@@ -34,7 +36,7 @@ class ChromaFeatures:
         Return chromagram in array values.
         
     """
-    def __init__(self, y, sr, mood):
+    def __init__(self, y, sr, mood : int):
         """
         Parameters
         ----------
@@ -43,7 +45,7 @@ class ChromaFeatures:
         sr : float
             Sample rate of audio for analyze.
         mood : int
-            Mood of the music song.
+            Mood of the user.
         """
         self.__y = y
         self.__sr = sr
@@ -54,14 +56,14 @@ class ChromaFeatures:
         """
         Calculates chromagram based on Librosa library.
 
-        Librosa library compute chromagram based on CQT chroma analysis. The function use preprocesing methods a postprocesing methods to improve analysis results.
+        Librosa library compute chromagram based on CQT chroma analysis. The function use preprocessing methods a postprocessing methods to improve analysis results.
         """
         # Preprocesing by extraction haromic elements from audio.
         y_harm = librosa.effects.harmonic(y=self.__y, margin=8)
 
         chroma_harm = librosa.feature.chroma_cqt(y=y_harm, sr=self.__sr) # CQT chromagram calculation.
         chroma_filter = np.minimum(chroma_harm, librosa.decompose.nn_filter(chroma_harm, aggregate=np.median, metric= 'cosine'))
-        self.__chroma = scipy.ndimage.median_filter(chroma_filter, size=(1,9)) # Chromagram filterign thru chroma_filter.
+        self.__chroma = scipy.ndimage.median_filter(chroma_filter, size=(1,9)) # Chromagram filtering thru chroma_filter.
     
     def __Calc_chroma_madmom(self):
         """
@@ -69,10 +71,20 @@ class ChromaFeatures:
 
         Madmom library compute chromagram using a deep neural network that focuses on harmonically relevant spectral content.
         """
+        new_sr = 44100  
+        new_y = librosa.resample(y=self.__y,orig_sr=self.__sr, target_sr=new_sr,)
+
+        # Save numpy array to temporary WAV file
+        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.wav')
+        sf.write(temp_file.name, new_y, new_sr)
+        audio_path = temp_file.name
+        audio_path = audio_path.replace('\\', '/')
+
         dcp = madmom.audio.DeepChromaProcessor()
-        chroma_madmom_deep = dcp(self.__audio_path,fps = 20.751)
+        chroma_madmom_deep = dcp(audio_path, fps = 20.751)
         self.__chroma = np.transpose(chroma_madmom_deep)
-        self.__sr = librosa.get_samplerate(self.__audio_path)
+
+        temp_file.close()
 
     def __Calc_color_palette(self):
         """
@@ -182,7 +194,6 @@ class ChromaFeatures:
         new_color = colorsys.hsv_to_rgb(new_color_hsv[0],new_color_hsv[1], new_color_hsv[2])
         new_color = [int(new_color[0]), int(new_color[1]), int(new_color[2])]
         return new_color
-    
 
     @property
     def sr(self):
