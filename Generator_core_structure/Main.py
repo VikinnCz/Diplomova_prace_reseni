@@ -22,10 +22,13 @@ app.config["DEBUG"] = True
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    '''
+    This is main Flask function that provides communication with user interface created as webpage. When the data from user are received then the process of generating animation begin. 
+    '''
     if request.method == 'POST' and 'submit_button' in request.form:
         # Zkontrolujte, zda soubor byl odeslán
         if 'audiofile' in request.files and request.files['audiofile'].filename != '':
-            # try:
+            try:
                 file = request.files['audiofile']
                 slider_value = request.form['slider']
 
@@ -38,9 +41,9 @@ def index():
                 # Send generated code to html template
                 session['processed_data'] = spectoda_code
                 return redirect(url_for('index'))
-            # except:
-            #     session['processed_data'] = "Nastala chyba při generování animace"
-            #     return redirect(url_for('index'))
+            except:
+                session['processed_data'] = "Nastala chyba při generování animace"
+                return redirect(url_for('index'))
         else:
             session['processed_data'] = "Nebyl vybrán žádný audio soubor."
             return redirect(url_for('index'))
@@ -53,6 +56,23 @@ def index():
 
 
 def main(y, sr, slider_value):
+    '''
+    Main function that runs all the algorithm. Firstly is prepared the audio file to the needed format and then the proces of extracting and analyzing information from audio began.
+
+    Parameters
+    ----------
+    y : array
+        Samples of audio for analyze.
+    sr : float
+        Sample rate of audio for analyze.
+    slider_value : int
+        Value of slider from user interface that represents mood parameter. 
+
+    Returns
+    ----------
+    spectoda_code : string
+        That is the spectoda code of generated animation. 
+    '''
 
     dataset_database = Load_dataset_database()
     mood = int(slider_value)
@@ -80,6 +100,19 @@ def main(y, sr, slider_value):
     return spectoda_code
 
 def is_stereo(y):
+    '''
+    Function that provides information about audio samples if there are in stereo or mono. 
+
+    Parameters
+    ----------
+    y : array
+        Samples of audio for analyze.
+
+    Returns
+    ----------
+    boolean
+        True if the samples ares in stereo and false if it is not. 
+    '''
     if y.ndim == 1:
         return False  # Audio je mono
     elif y.ndim == 2 and y.shape[1] == 1:
@@ -97,7 +130,6 @@ def Code_generation(y, sr, dataset:Dataset, beat_tracking:BeatTracking, chroma_f
         Samples of audio for analyze.
     sr : float
         Sample rate of audio for analyze.
-        beat_tracking
     beat_tracking : BeatTracking
         Object of analyzed beats
     chroma_features : ChromaFeatures
@@ -414,6 +446,24 @@ def Calc_loudness(y, sr, start_time = None, end_time = None):
         return loudness
 
 def Calc_median(y, start_beat_index = None, end_beat_index = None):
+    """
+    Function for calculating median from signal y in bound which was given. 
+
+    Parameters
+    ----------
+    y : list
+        Signal used to calculate the median.
+    start_beat_index : int
+        Index from signal in which the calculation began. 
+    end_beat_index : int
+        Index from signal in which the calculation ended.
+
+    Returns 
+    ----------
+    median : float
+        Median of the samples in given range. 
+    """
+
     if(start_beat_index == None or end_beat_index == None):
         median = np.median(y)
         return median
@@ -421,7 +471,22 @@ def Calc_median(y, start_beat_index = None, end_beat_index = None):
         median = np.median(y[start_beat_index:end_beat_index])
         return median
     
-def Char_selection(is_long, is_loud, is_important_in_audion, is_important_in_segment):
+def Char_selection(is_long : bool, is_loud : bool, is_important_in_audion : bool, is_important_in_segment : bool):
+    """
+    Main logic for selecting right animation block. 
+
+    Parameters
+    ----------
+    is_long : boolean
+    is_loud : boolean
+    is_important_in_audio : boolean
+    is_important_in_segment : boolean
+
+    Returns 
+    ----------
+    anim_characteristic : int
+        Animation characteristics
+    """
     match [is_long, is_loud]:
         case[False, True]:
             #Krátké úderné
@@ -528,6 +593,14 @@ def Dataset_selection(dataset_database : list[Dataset], genre_classification : G
     return selected_dataset
 
 def Load_dataset_database():
+    """
+    Function for loading dataset from JSON file. 
+
+    Returns
+    ----------
+    dataset_database : List[Dataset]
+        This is the database of datasets. 
+    """
     __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
     with open (os.path.join(__location__, "dataset_database.json"), "r") as fp:
@@ -540,36 +613,3 @@ def Load_dataset_database():
 if __name__ == "__main__":
 
     app.run(debug=True)
-    # audio_path = "Referencni_skladby/Imanbek & BYOR - Belly Dancer (Official Music Video).wav"
-    # audio_path = "Referencni_skladby/The Beatles - Abbey Road (1969) (2012 180g Vinyl 24bit-96kHz) [FLAC] vtwin88cube/07.-Here Comes The Sun.wav"
-    # audio_path = "Referencni_skladby/The Beatles - Abbey Road (1969) (2012 180g Vinyl 24bit-96kHz) [FLAC] vtwin88cube/01.-Come Together.wav"
-    # audio_path = "Referencni_skladby/BABYMONSTER - SHEESH MV.mp3"
-    # audio_path = "Referencni_skladby/Benson Boone - Beautiful Things (Official Music Video).mp3"
-
-    # dataset_database = Load_dataset_database()
-    # mood = cns.HAPPY
-
-    # y, sr = librosa.load(path=audio_path, sr=22050, mono=True)
-
-    # beat_tracking = BeatTracking(y=y, sr=sr)
-    # chroma_features = ChromaFeatures(y=y, sr=sr, mood=mood)
-    # genre_classification = GenreClassification(y=y, sr=sr)
-    # segmentation = Segmentation(chroma_features=chroma_features)
-    # segmentation.bounds
-    
-
-    # dataset = Dataset_selection(dataset_database, genre_classification, beat_tracking, mood)
-
-    # timeline_animations = Code_generation(y, sr, beat_tracking, chroma_features, segmentation)
-    # spectoda_code = ''.join(timeline_animations)
-    # print(spectoda_code)
-
-
-## Parametry které je možné nastavovat a na základě toho měnit generování animací. ##
-# Na základě mood můžu nastavovat trashold pro beat strenght
-# Počet generovaných segmentů (number_of_segments)
-
-
-#Jak vybírat datasety abych pro každý žánr nemusel mít dataset pro každou náladu (40 datasetů). 
-    # Řešení 1: žánr bude mít nejnižší prioritu při výběru. Prioritní bude mood a tempo až nakonec žánr.
-    # Řešení 2: parametr genre bude list a každý dataset může být pro několik žánrů. Například to může být pole s hodnotou pro každý žánr a tato hodnota bude určovat vhodnost pro daný žánr. Tato hodnota se pak porovnává s hodnotama pravděpodobnosti pro daný žánr. Vybere se 5 nejvíce hodících a z těch se následně vybírá nejpodobnější náladě a tempu.

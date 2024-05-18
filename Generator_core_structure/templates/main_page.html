@@ -20,7 +20,7 @@
                     <span>Dancing</span>
                 </div>
             </div>
-
+            <input type="hidden" name="submit_button" value="true">
             <button type="submit" name="submit_button">Generovat Animaci</button>
             <div id="loadingSpinner" style="display: none;">
               <div class="spinner"></div>
@@ -30,14 +30,35 @@
     </div>
 
     <script>
-      document.addEventListener('DOMContentLoaded', function() {
-          const submitButton = document.querySelector('button[name="submit_button"]');
-          const spinner = document.getElementById('loadingSpinner');
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            const submitButton = document.querySelector('button[name="submit_button"]');
+            const spinner = document.getElementById('loadingSpinner');
+
+            form.addEventListener('submit', function() {
+                // Zobrazí spinner
+                spinner.style.display = 'inline-block';
+
+                // Zakáže tlačítko pro další klikání
+                submitButton.disabled = true;
+                submitButton.style.opacity = 0.5; // Nastaví průhlednost tlačítka, aby uživatel viděl, že je neaktivní
+            });
+        });
+
+
+    //     document.addEventListener('DOMContentLoaded', function() {
+    //         const form = document.querySelector('form')
+    //         const submitButton = document.querySelector('button[name="submit_button"]');
+    //         const spinner = document.getElementById('loadingSpinner');
       
-          submitButton.addEventListener('click', function() {
-              spinner.style.display = 'inline-block'; // Zobrazí spinner při kliknutí
-          });
-      });
+    //         form.addEventListener('submit', function(event) {
+    //             spinner.style.display = 'inline-block'; // Zobrazí spinner při kliknutí
+              
+    //             // Zakáže tlačítko pro další klikání
+    //             submitButton.disabled = true;
+    //             submitButton.style.opacity = 0.5; // Nastaví průhlednost tlačítka, aby uživatel viděl, že je neaktivní
+    //       });
+    //   });
       </script>
 </body>
 </html>
