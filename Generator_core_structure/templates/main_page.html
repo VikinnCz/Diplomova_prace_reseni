@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>Generátor Animace</title>
-    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/styles.css') }}">
+    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles.css') }}">
 </head>
 <body>
     <div class="page-body">
@@ -27,6 +27,22 @@
           </div>
         </form>
         <textarea id="code" name="code" rows="10" cols="50">{{ code }}</textarea>
+    </div>
+    <div class="page-body">
+        <h1>Návod pro zobrazení animace</h1>
+        <ol>
+            <li>Po vygenerování kódu je nutné jej zkopírovat a přejí na stránku
+                 <a href="https://studio.spectoda.com/">Spectoda studia</a> kde bude potřeba se nejprve zaregistrovat.
+                 </li>
+            <li>Dále postupujte dle videa. </li>
+            <li>
+                <video src="static/Video_navod.mp4" width="100%" height="auto"  controls="controls">
+                    Váš prohlížeč nepodporuje vkládání video souborů, soubor si
+                    <a href="static/Video_navod.mp4">stáhněte</a>.
+                  </video>
+            </li>
+          </ol>
+          <h
     </div>
 
     <script>

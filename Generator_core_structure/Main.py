@@ -209,14 +209,14 @@ def Code_generation(y, sr, dataset:Dataset, beat_tracking:BeatTracking, chroma_f
             # Tichý segment
             is_loud = False
         # Beat
-        if(start_beat_strength >= 0.5*beats_stength_median):
+        if(start_beat_strength >= 0.7*beats_stength_median):
             # Významný v nahrávce
             is_important_in_audio = True
         else:
             # Nevýznamný v nahrávce
             is_important_in_audio = False
 
-        if(start_beat_strength >= 0.7*segment_beat_strength_median):
+        if(start_beat_strength >= 0.6*segment_beat_strength_median):
             # Významný v segmentu
             is_important_in_segment = True
         else:

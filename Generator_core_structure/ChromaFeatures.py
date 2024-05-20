@@ -80,7 +80,7 @@ class ChromaFeatures:
         audio_path = temp_file.name
         audio_path = audio_path.replace('\\', '/')
 
-        dcp = madmom.audio.DeepChromaProcessor()
+        dcp = madmom.audio.chroma.DeepChromaProcessor()
         chroma_madmom_deep = dcp(audio_path, fps = 20.751)
         self.__chroma = np.transpose(chroma_madmom_deep)
 
